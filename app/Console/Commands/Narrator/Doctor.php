@@ -8,6 +8,7 @@ use App\Services\Narrator\SilentNarrator;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -120,12 +121,38 @@ class Doctor extends Command
 
             $disk->put($probe, 'probe');
             $url = $disk->url($probe);
-            $disk->delete($probe);
 
-            $this->ok('Disk write', 'readable back as '.$url);
+            $this->ok('Disk write', 'wrote '.$url);
+            $this->checkPubliclyReadable($url);
+
+            $disk->delete($probe);
         } catch (Throwable $e) {
             $this->bad('Disk write', $e->getMessage());
         }
+    }
+
+    /**
+     * A generated URL is not the same as a reachable one.
+     *
+     * The host screen fetches these mp3s straight from the browser, so a
+     * private bucket means a 403 the room never sees — the audio element just
+     * fails and the story stays silent.
+     */
+    private function checkPubliclyReadable(string $url): void
+    {
+        try {
+            $status = Http::timeout(10)->withoutRedirecting()->get($url)->status();
+        } catch (Throwable $e) {
+            // No answer at all usually means the app simply is not serving on
+            // this URL from here, which says nothing about the bucket.
+            $this->ok('Public read', 'could not be checked from here ('.class_basename($e).')');
+
+            return;
+        }
+
+        $status === 200
+            ? $this->ok('Public read', 'HTTP 200 — a browser can play this')
+            : $this->bad('Public read', "HTTP {$status} — the bucket is not publicly readable, so the host screen cannot play the audio");
     }
 
     private function checkStoredAudio(): void
