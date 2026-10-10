@@ -31,6 +31,63 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The storyteller's voice
+    |--------------------------------------------------------------------------
+    |
+    | "driver" picks who reads the story aloud on the host screen. "elevenlabs"
+    | calls the API; "silent" is the no-op used by the test suite and by any
+    | install without a key, so a fresh clone is still fully playable.
+    |
+    | Speech is rendered on the queue and cached on the disk below, keyed by the
+    | text itself — a passage is paid for once and replayed for free. Point the
+    | disk at object storage in production, because app instances have an
+    | ephemeral filesystem and anything written beside the code is gone on the
+    | next deploy.
+    |
+    | Run `php artisan narrator:voices` to list the voices on your account and
+    | find one that sounds like the storyteller you want.
+    |
+    */
+
+    'narrator' => [
+        'driver' => env('QUESTCAST_NARRATOR_DRIVER', 'elevenlabs'),
+
+        'voice' => env('ELEVENLABS_VOICE_ID', ''),
+
+        // Quality over latency: nobody is waiting on this, because it is
+        // rendered off the queue while the scene is already on screen.
+        'model' => env('ELEVENLABS_MODEL', 'eleven_multilingual_v2'),
+
+        'format' => env('ELEVENLABS_FORMAT', 'mp3_44100_128'),
+
+        'timeout' => (int) env('ELEVENLABS_TIMEOUT', 60),
+
+        'disk' => env('NARRATION_DISK', 'public'),
+
+        /*
+         | A storyteller, not a newsreader, reading 120 words at a time to a
+         | room that is half-listening.
+         |
+         | Stability trades consistency against emotional range: too high and
+         | every scene lands the same way, too low and a long passage wanders,
+         | which also costs you invented names. Style adds theatrics and some
+         | latency, which this does not have to care about. Speed below 1.0
+         | buys the room a beat to picture what it just heard.
+         |
+         | These are reasonable starting points, not answers. Pick a voice
+         | first, then tune these by ear.
+         */
+        'voice_settings' => [
+            'stability' => (float) env('ELEVENLABS_STABILITY', 0.45),
+            'similarity_boost' => (float) env('ELEVENLABS_SIMILARITY', 0.75),
+            'style' => (float) env('ELEVENLABS_STYLE', 0.45),
+            'speed' => (float) env('ELEVENLABS_SPEED', 0.92),
+            'use_speaker_boost' => true,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Player portraits
     |--------------------------------------------------------------------------
     |

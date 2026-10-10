@@ -6,7 +6,10 @@
 {{-- Broadcasts drive the screen; the slow poll is a safety net for a
      dropped websocket, which on a projector machine is a question of
      when rather than if. --}}
-<div class="flex h-screen flex-col overflow-hidden" wire:poll.10s>
+{{-- Only this screen speaks. The phones carry the same story but there is one
+     room and one set of speakers, so the voice belongs to the TV. --}}
+<div class="flex h-screen flex-col overflow-hidden" wire:poll.10s
+     data-voice-over="{{ json_encode($this->voiceOver) }}">
 
     {{-- Status bar: always readable from across the room --}}
     <header class="flex flex-wrap items-center justify-between gap-4 border-b border-deep-800 px-8 py-4">
@@ -153,7 +156,7 @@
         </main>
 
         {{-- Party roster and the campaign log --}}
-        <aside class="flex min-h-0 w-full shrink-0 flex-col gap-6 lg:w-96">
+        <aside class="flex min-h-0 w-full shrink-0 flex-col gap-6 lg:w-1/3">
             <section class="shrink-0">
                 <h2 class="text-xs uppercase tracking-[0.3em] text-deep-400">
                     The party ({{ $this->players->count() }})

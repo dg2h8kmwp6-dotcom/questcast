@@ -6,6 +6,7 @@ use App\Enums\EventType;
 use App\Enums\GameStatus;
 use App\Enums\SceneStatus;
 use App\Events\GameUpdated;
+use App\Jobs\NarrateScene;
 use App\Jobs\OpenOpeningScene;
 use App\Jobs\ResolveRound;
 use App\Models\Action;
@@ -97,6 +98,9 @@ class GameEngine
             $game->update(['scene_number' => 1, 'last_error' => null]);
             $game->transitionTo(GameStatus::AwaitingActions);
             $game->log(EventType::Narration, $draft->narration, scene: $scene);
+
+            // The scene opens now; the voice catches up with it a moment later.
+            NarrateScene::dispatch($scene, 'narration')->afterCommit();
 
             GameUpdated::dispatch($game->fresh(), 'scene-opened');
 
@@ -215,6 +219,8 @@ class GameEngine
 
             $game->log(EventType::Resolution, $result->resolution, scene: $scene);
 
+            NarrateScene::dispatch($scene, 'resolution')->afterCommit();
+
             $this->applyStateChanges($game, $scene, $result->stateChanges);
 
             if ($result->gameOver || ! $result->nextScene) {
@@ -229,6 +235,8 @@ class GameEngine
             $game->update(['scene_number' => $number, 'last_error' => null]);
             $game->transitionTo(GameStatus::AwaitingActions);
             $game->log(EventType::Narration, $result->nextScene->narration, scene: $next);
+
+            NarrateScene::dispatch($next, 'narration')->afterCommit();
 
             GameUpdated::dispatch($game->fresh(), 'scene-opened');
         });

@@ -70,6 +70,46 @@ class Screen extends Component
     }
 
     /**
+     * What the storyteller still has to read aloud, oldest first.
+     *
+     * The last two scenes are offered rather than just the current one, because
+     * a round produces two passages — what came of the party's actions, and
+     * where that leaves them — and the room wants both, in that order. The
+     * screen hands over everything it has and lets the browser skip whatever it
+     * has already spoken, which is what keeps the slow poll from reading the
+     * same scene over and over.
+     *
+     * @return array<int, array{key: string, url: string}>
+     */
+    #[Computed]
+    public function voiceOver(): array
+    {
+        $passages = [];
+
+        // reorder() rather than orderByDesc(): the relation sorts ascending
+        // already, and a second clause would simply be ignored.
+        $recent = $this->game->scenes()
+            ->reorder('number', 'desc')
+            ->limit(2)
+            ->get()
+            ->reverse();
+
+        foreach ($recent as $scene) {
+            foreach (['narration', 'resolution'] as $passage) {
+                $url = $passage === 'narration'
+                    ? $scene->narrationAudioUrl()
+                    : $scene->resolutionAudioUrl();
+
+                if ($url) {
+                    $passages[] = ['key' => "{$scene->id}-{$passage}", 'url' => $url];
+                }
+            }
+        }
+
+        return $passages;
+    }
+
+    /**
      * Where the adventurer stands on the trail.
      *
      * The road always runs a little past where the party has got to, so there
@@ -115,7 +155,7 @@ class Screen extends Component
     {
         $this->game->refresh();
 
-        unset($this->players, $this->scene, $this->decided, $this->log, $this->journey);
+        unset($this->players, $this->scene, $this->decided, $this->log, $this->journey, $this->voiceOver);
 
         $cue = match ($payload['reason'] ?? null) {
             'player-joined' => 'join',

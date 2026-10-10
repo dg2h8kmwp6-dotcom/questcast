@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Scene extends Model
 {
@@ -52,5 +53,23 @@ class Scene extends Model
     public function isOpen(): bool
     {
         return $this->status === SceneStatus::Open;
+    }
+
+    /** Where the storyteller's reading of this scene lives, once there is one. */
+    public function narrationAudioUrl(): ?string
+    {
+        return $this->audioUrl($this->narration_audio_path);
+    }
+
+    public function resolutionAudioUrl(): ?string
+    {
+        return $this->audioUrl($this->resolution_audio_path);
+    }
+
+    private function audioUrl(?string $path): ?string
+    {
+        return filled($path)
+            ? Storage::disk(config('questcast.narrator.disk'))->url($path)
+            : null;
     }
 }

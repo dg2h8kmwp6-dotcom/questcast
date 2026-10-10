@@ -6,6 +6,10 @@ return [
         'key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'elevenlabs' => [
+        'key' => env('ELEVENLABS_API_KEY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
