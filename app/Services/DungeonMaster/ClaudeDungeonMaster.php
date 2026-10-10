@@ -81,9 +81,13 @@ class ClaudeDungeonMaster implements DungeonMaster
             Schema::spine($beats),
         );
 
+        // The count was asked for in words rather than in the schema, so trim
+        // here if the storyteller was generous. Coming back short is fine — it
+        // only means a shorter safety net.
         $drafts = collect($payload['beats'] ?? [])
             ->map(fn (array $beat): SceneDraft => SceneDraft::fromArray($beat))
             ->reject(fn (SceneDraft $draft): bool => $draft->isEmpty())
+            ->take($beats)
             ->values()
             ->all();
 
@@ -146,7 +150,20 @@ class ClaudeDungeonMaster implements DungeonMaster
                 ],
             );
         } catch (APIStatusException $e) {
-            throw DungeonMasterFailed::unreachable($e->type?->value ?? $e->getMessage());
+            // The type alone says "invalid_request_error" and nothing about
+            // which part of the request was invalid, which is useless from a
+            // log. Keep both.
+            $detail = trim(implode(' — ', array_filter([
+                $e->type?->value,
+                mb_substr($e->getMessage(), 0, 300),
+            ])));
+
+            Log::warning('The storyteller rejected a request.', [
+                'game_id' => $game->id,
+                'detail' => $e->getMessage(),
+            ]);
+
+            throw DungeonMasterFailed::unreachable($detail);
         } catch (Throwable $e) {
             throw DungeonMasterFailed::unreachable($e->getMessage());
         }

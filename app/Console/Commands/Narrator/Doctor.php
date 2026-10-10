@@ -93,6 +93,17 @@ class Doctor extends Command
     private function checkDisk(): void
     {
         $name = (string) config('questcast.narrator.disk');
+        $known = array_keys(config('filesystems.disks', []));
+
+        // NARRATION_DISK names a disk, not a location. A bucket URL dropped in
+        // here looks plausible and fails with Laravel's own wording, which does
+        // not hint at what was actually meant.
+        if (! in_array($name, $known, true)) {
+            $this->bad('Disk', "[{$name}] is not a configured disk. NARRATION_DISK takes a disk name, not a URL — one of: ".implode(', ', $known));
+
+            return;
+        }
+
         $driver = (string) config("filesystems.disks.{$name}.driver");
 
         if ($driver === 'local' && ! app()->environment('local', 'testing')) {

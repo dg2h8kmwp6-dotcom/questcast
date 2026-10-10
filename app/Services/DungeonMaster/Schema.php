@@ -73,9 +73,10 @@ class Schema
             'properties' => [
                 'beats' => [
                     'type' => 'array',
-                    'minItems' => $beats,
-                    'maxItems' => $beats,
-                    'description' => "Exactly {$beats} beats, in order, spanning the whole adventure from its opening to its final confrontation.",
+                    // Structured outputs reject maxItems outright and accept
+                    // minItems only as 0 or 1, so the count is asked for in
+                    // words and enforced on our side when the beats come back.
+                    'description' => "Exactly {$beats} beats, no more and no fewer, in order, spanning the whole adventure from its opening to its final confrontation.",
                     'items' => [
                         'type' => 'object',
                         'properties' => [
