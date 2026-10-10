@@ -199,7 +199,7 @@ class Doctor extends Command
         $chosen = (string) config('questcast.narrator.disk');
 
         if (! $disks->contains($chosen)) {
-            $this->bad('Platform disks', "NARRATION_DISK is [{$chosen}], which the platform does not configure. Point it at one of the above.");
+            $this->bad('Disk choice', "NARRATION_DISK is [{$chosen}], which the platform does not configure. Set it to: ".$disks->implode(' or '));
         }
     }
 
@@ -431,11 +431,21 @@ class Doctor extends Command
 
         $this->ok('Live synthesis', number_format(strlen($utterance->audio)).' bytes of '.$utterance->contentType);
 
-        $disk = Storage::disk(config('questcast.narrator.disk'));
         $path = 'narration/.live-'.bin2hex(random_bytes(4)).'.'.$utterance->extension;
 
-        if ($disk->put($path, $utterance->audio, ['ContentType' => $utterance->contentType]) !== true) {
-            $this->bad('Live store', 'the audio would not write to the narration disk');
+        try {
+            $disk = Storage::disk(config('questcast.narrator.disk'));
+
+            if ($disk->put($path, $utterance->audio, ['ContentType' => $utterance->contentType]) !== true) {
+                $this->bad('Live store', 'the audio would not write to the narration disk');
+
+                return;
+            }
+        } catch (Throwable $e) {
+            // A disk missing its configuration throws while the client is being
+            // built, long before anything can return false, so this has to be
+            // caught or the command dies mid-diagnosis.
+            $this->bad('Live store', $e->getMessage());
 
             return;
         }
