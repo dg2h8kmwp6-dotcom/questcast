@@ -18,6 +18,16 @@ interface DungeonMaster
      */
     public function chooseTone(Game $game): string;
 
+    /**
+     * Lay out the arc of the adventure before anybody has acted.
+     *
+     * Every beat must be playable cold, because one of them may be dropped in
+     * without warning when a round fails to resolve.
+     *
+     * @return array<int, SceneDraft>
+     */
+    public function planAdventure(Game $game, int $beats): array;
+
     /** Write the opening scene for a game that has only a premise and a party. */
     public function openingScene(Game $game): SceneDraft;
 

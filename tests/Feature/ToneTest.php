@@ -102,7 +102,7 @@ it('clears the decks for somebody with their own idea', function () {
         ->assertSet('tone', Game::TONE_AUTO);
 });
 
-it('hosts a game without the host picking a tone', function () {
+it('hosts a game without the host picking a tone, and settles one in the lobby', function () {
     Livewire::test(Home::class)
         ->set('title', 'The Ninth Terrace')
         ->set('premise', 'Eight terraces climb the mountain and the ninth has started smoking.')
@@ -111,5 +111,7 @@ it('hosts a game without the host picking a tone', function () {
         ->assertHasNoErrors()
         ->assertRedirect();
 
-    expect(Game::sole()->tone)->toBe(Game::TONE_AUTO);
+    // Planning runs the moment the game exists, and settling the tone is the
+    // first thing it does, so the mood is decided before anybody presses begin.
+    expect(Game::sole()->tone)->toBe('frostpeak');
 });

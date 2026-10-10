@@ -28,7 +28,7 @@ class ResolveRound implements ShouldQueue
     {
         // Re-opens the scene so the party's actions and rolls are not lost and
         // the host can simply press resolve again.
-        app(GameEngine::class)->recordFailure(
+        app(GameEngine::class)->carryOn(
             $this->game,
             $e instanceof DungeonMasterFailed
                 ? $e->getMessage()

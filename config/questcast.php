@@ -128,6 +128,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Shape of an adventure
+    |--------------------------------------------------------------------------
+    |
+    | Part of the story is laid out before anybody acts. Those beats are handed
+    | to the storyteller as the arc it is improvising towards, and they are also
+    | what the game falls forward onto when a round fails to resolve — which is
+    | the difference between a wobble nobody notices and a host reloading the
+    | screen in front of the room.
+    |
+    | "spine" is how many of "scenes" are planned up front. Half is a deliberate
+    | balance: enough to survive a bad run of API calls, not so much that the
+    | adventure stops responding to what the party actually does.
+    |
+    */
+
+    'story' => [
+        'scenes' => (int) env('QUESTCAST_STORY_SCENES', 10),
+        'spine' => (int) env('QUESTCAST_STORY_SPINE', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Adventures off the shelf
     |--------------------------------------------------------------------------
     |

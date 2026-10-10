@@ -73,6 +73,27 @@ class ClaudeDungeonMaster implements DungeonMaster
         }
     }
 
+    public function planAdventure(Game $game, int $beats): array
+    {
+        $payload = $this->ask(
+            $game,
+            $this->transcript->planMessages($game, $beats),
+            Schema::spine($beats),
+        );
+
+        $drafts = collect($payload['beats'] ?? [])
+            ->map(fn (array $beat): SceneDraft => SceneDraft::fromArray($beat))
+            ->reject(fn (SceneDraft $draft): bool => $draft->isEmpty())
+            ->values()
+            ->all();
+
+        if ($drafts === []) {
+            throw DungeonMasterFailed::malformed('the adventure came back with no beats.');
+        }
+
+        return $drafts;
+    }
+
     public function openingScene(Game $game): SceneDraft
     {
         $payload = $this->ask(

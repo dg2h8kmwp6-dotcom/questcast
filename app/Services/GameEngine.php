@@ -18,8 +18,10 @@ use App\Services\DungeonMaster\SceneDraft;
 use App\Services\DungeonMaster\StateChange;
 use App\Support\Dice;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 /**
  * All game state transitions live here.
@@ -90,9 +92,9 @@ class GameEngine
     /** Called from the queue: ask the DM for scene one and open it. */
     public function openOpeningScene(Game $game): Scene
     {
-        $this->settleTone($game);
+        $this->ensureSpine($game);
 
-        $draft = $this->dm->openingScene($game);
+        $draft = $this->dm->openingScene($game->fresh());
 
         return DB::transaction(function () use ($game, $draft) {
             $scene = $this->persistScene($game, $draft, number: 1);
@@ -337,6 +339,114 @@ class GameEngine
         });
 
         GameUpdated::dispatch($game->fresh(), 'ended');
+    }
+
+    /**
+     * Lay out the arc of the adventure, once.
+     *
+     * Idempotent, because this runs either on the queue while the party is
+     * still gathering or on the way into the opening scene, whichever gets
+     * there first.
+     */
+    public function planAdventure(Game $game): void
+    {
+        if ($game->fresh()->hasSpine()) {
+            return;
+        }
+
+        $this->settleTone($game);
+
+        $beats = $this->dm->planAdventure(
+            $game->fresh(),
+            max(1, (int) config('questcast.story.spine')),
+        );
+
+        $game->update([
+            'spine' => collect($beats)->map(fn (SceneDraft $beat): array => $beat->toArray())->all(),
+            'spine_used' => 0,
+        ]);
+    }
+
+    /** Plan if we can, but never let a missing net stop a game from starting. */
+    private function ensureSpine(Game $game): void
+    {
+        try {
+            $this->planAdventure($game);
+        } catch (Throwable $e) {
+            Log::warning('Starting without a planned arc.', [
+                'game_id' => $game->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * A generation failed. Carry the story forward rather than stopping it.
+     *
+     * This is what the spine is for. A round that could not be resolved used to
+     * put an error bar in front of the room and wait for somebody to press
+     * retry; now it spends a planned beat and the session keeps moving. The
+     * host only sees the error once the net has actually run out.
+     */
+    public function carryOn(Game $game, string $message): void
+    {
+        if ($this->fallForward($game->fresh())) {
+            Log::warning('Fell forward onto a planned beat.', [
+                'game_id' => $game->id,
+                'reason' => $message,
+            ]);
+
+            return;
+        }
+
+        $this->recordFailure($game, $message);
+    }
+
+    private function fallForward(Game $game): bool
+    {
+        $beat = $game->nextSpineBeat();
+
+        if (! $beat) {
+            return false;
+        }
+
+        DB::transaction(function () use ($game, $beat) {
+            $scene = $game->currentScene;
+
+            // A round that died half-resolved still owes the room an outcome,
+            // and the beat carries a line written to work whatever they did.
+            if ($scene && $scene->status === SceneStatus::Resolving) {
+                $bridge = $beat->bridge ?: 'The moment turns, and you are moving again.';
+
+                $scene->update([
+                    'status' => SceneStatus::Resolved,
+                    'resolution' => $bridge,
+                    'resolved_at' => now(),
+                ]);
+
+                $game->log(EventType::Resolution, $bridge, scene: $scene);
+
+                NarrateScene::dispatch($scene, 'resolution')->afterCommit();
+            }
+
+            $number = ($scene?->number ?? 0) + 1;
+            $next = $this->persistScene($game, $beat, $number);
+
+            $game->update([
+                'scene_number' => $number,
+                'last_error' => null,
+                'spine_used' => $game->spine_used + 1,
+            ]);
+
+            $game->transitionTo(GameStatus::AwaitingActions);
+            $game->log(EventType::Narration, $beat->narration, scene: $next);
+
+            NarrateScene::dispatch($next, 'narration')->afterCommit();
+
+            GameUpdated::dispatch($game->fresh(), 'scene-opened');
+        });
+
+        return true;
     }
 
     /** Surface a DM failure on the host screen instead of swallowing it. */

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Jobs\PlanAdventure;
 use App\Models\Game;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -80,6 +81,11 @@ class Home extends Component
         ]);
 
         $game = Game::start($this->title, $this->premise, $this->tone);
+
+        // Lay the arc out now rather than at the whistle: the lobby wait is
+        // dead time, and by the time the host presses begin the safety net is
+        // usually already there.
+        PlanAdventure::dispatch($game);
 
         // The host screen is identified by a secret in its own session, so a
         // player who learns the room code still cannot drive the game.

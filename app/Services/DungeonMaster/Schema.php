@@ -58,6 +58,48 @@ class Schema
         ];
     }
 
+    /**
+     * The arc, laid out before play starts.
+     *
+     * Each beat has to stand on its own as a playable scene, because any one of
+     * them may be dropped in cold when a round fails to resolve.
+     *
+     * @return array<string, mixed>
+     */
+    public static function spine(int $beats): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'beats' => [
+                    'type' => 'array',
+                    'minItems' => $beats,
+                    'maxItems' => $beats,
+                    'description' => "Exactly {$beats} beats, in order, spanning the whole adventure from its opening to its final confrontation.",
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'narration' => [
+                                'type' => 'string',
+                                'description' => 'Read aloud to the room. 60-120 words, second person plural, present tense. Must make sense to a party arriving here without having seen the previous beat.',
+                            ],
+                            'bridge' => [
+                                'type' => 'string',
+                                'description' => 'One or two sentences carrying the party from the previous scene into this one, written to work no matter what they actually did. 25-50 words.',
+                            ],
+                            'image_prompt' => ['type' => 'string'],
+                            'options' => self::options(),
+                        ],
+                        'required' => ['narration', 'bridge', 'image_prompt', 'options'],
+                        'additionalProperties' => false,
+                    ],
+                ],
+            ],
+            'required' => ['beats'],
+            'additionalProperties' => false,
+        ];
+    }
+
     public static function round(): array
     {
         return [

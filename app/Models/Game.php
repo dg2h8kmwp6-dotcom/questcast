@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EventType;
 use App\Enums\GameStatus;
+use App\Services\DungeonMaster\SceneDraft;
 use Database\Factories\GameFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +45,7 @@ class Game extends Model
         return [
             'status' => GameStatus::class,
             'settings' => 'array',
+            'spine' => 'array',
             'thinking_since' => 'datetime',
         ];
     }
@@ -59,6 +61,25 @@ class Game extends Model
             'status' => GameStatus::Lobby,
             'settings' => config('questcast.defaults'),
         ]);
+    }
+
+    /** Planned beats that have not been spent yet. */
+    public function spineRemaining(): int
+    {
+        return max(0, count($this->spine ?? []) - (int) $this->spine_used);
+    }
+
+    public function hasSpine(): bool
+    {
+        return filled($this->spine);
+    }
+
+    /** The next beat to fall forward onto, or null once the net runs out. */
+    public function nextSpineBeat(): ?SceneDraft
+    {
+        $beat = ($this->spine ?? [])[(int) $this->spine_used] ?? null;
+
+        return is_array($beat) ? SceneDraft::fromArray($beat) : null;
     }
 
     public static function freshCode(): string

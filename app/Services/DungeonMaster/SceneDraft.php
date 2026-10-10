@@ -5,11 +5,17 @@ namespace App\Services\DungeonMaster;
 /** A scene as the DM wrote it, before it is persisted. */
 readonly class SceneDraft
 {
-    /** @param array<int,array{key:string,label:string,skill:?string,dc:?int}> $options */
+    /**
+     * @param  array<int,array{key:string,label:string,skill:?string,dc:?int}>  $options
+     * @param  ?string  $bridge  On a planned beat, the line that carries the party
+     *                           here from whatever just happened. Used as the
+     *                           resolution when a round has to fall forward.
+     */
     public function __construct(
         public string $narration,
         public array $options,
         public ?string $imagePrompt = null,
+        public ?string $bridge = null,
     ) {}
 
     public static function fromArray(array $payload): self
@@ -17,8 +23,20 @@ readonly class SceneDraft
         return new self(
             narration: trim((string) ($payload['narration'] ?? '')),
             options: self::normalizeOptions($payload['options'] ?? []),
-            imagePrompt: $payload['image_prompt'] ?: null,
+            imagePrompt: ($payload['image_prompt'] ?? null) ?: null,
+            bridge: trim((string) ($payload['bridge'] ?? '')) ?: null,
         );
+    }
+
+    /** @return array{narration:string,options:array,image_prompt:?string,bridge:?string} */
+    public function toArray(): array
+    {
+        return [
+            'narration' => $this->narration,
+            'options' => $this->options,
+            'image_prompt' => $this->imagePrompt,
+            'bridge' => $this->bridge,
+        ];
     }
 
     /**

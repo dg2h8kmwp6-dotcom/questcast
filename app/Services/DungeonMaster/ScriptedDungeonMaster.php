@@ -54,6 +54,18 @@ class ScriptedDungeonMaster implements DungeonMaster
             : (string) $scores->sortDesc()->keys()->first();
     }
 
+    public function planAdventure(Game $game, int $beats): array
+    {
+        return collect(range(0, max(1, $beats) - 1))
+            ->map(fn (int $i): SceneDraft => new SceneDraft(
+                narration: self::BEATS[$i % count(self::BEATS)],
+                options: $this->options(),
+                imagePrompt: 'A planned beat somewhere along the island chain.',
+                bridge: 'However that went, you come out of it moving, and the way on is clear enough.',
+            ))
+            ->all();
+    }
+
     public function openingScene(Game $game): SceneDraft
     {
         return new SceneDraft(

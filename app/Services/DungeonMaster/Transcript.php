@@ -24,6 +24,7 @@ class Transcript
     public function system(Game $game): array
     {
         $tone = config("questcast.tones.{$game->tone}", 'Sweeping high fantasy.');
+        $arc = $this->arc($game);
 
         $text = <<<PROMPT
         You are the Dungeon Master for a live, in-person tabletop session. The story
@@ -34,6 +35,7 @@ class Transcript
         Title: {$game->title}
         Premise: {$game->premise}
         Tone: {$tone}
+        {$arc}
 
         # The world
 
@@ -103,6 +105,58 @@ class Transcript
                 // Stable for the whole session, so it is worth caching: every
                 // round after the first reads it instead of re-billing it.
                 'cacheControl' => ['type' => 'ephemeral'],
+            ],
+        ];
+    }
+
+    /**
+     * The beats planned before play began, if there are any.
+     *
+     * This belongs in the system prompt rather than the messages because it is
+     * written once and never edited, which is what lets it sit behind the cache
+     * breakpoint with everything else that cannot move.
+     */
+    private function arc(Game $game): string
+    {
+        $beats = collect($game->spine ?? [])
+            ->map(fn (array $beat, int $index): string => ($index + 1).'. '.trim((string) ($beat['narration'] ?? '')))
+            ->filter(fn (string $line): bool => mb_strlen($line) > 3)
+            ->implode("\n\n");
+
+        if ($beats === '') {
+            return '';
+        }
+
+        return <<<ARC
+
+
+        # The arc you are heading for
+
+        These beats were laid out before anybody acted. Steer towards them, but do
+        not force them: if the party has made one impossible, or has arrived
+        somewhere better, follow the party and let the arc bend. Never read one of
+        these out verbatim — they are where the story is going, not its script.
+
+        {$beats}
+        ARC;
+    }
+
+    /** The planning ask: lay out the arc before a single die is rolled. */
+    public function planMessages(Game $game, int $beats): array
+    {
+        return [
+            [
+                'role' => 'user',
+                'content' => implode("\n\n", array_filter([
+                    $this->roster($game),
+                    "Lay out this adventure as {$beats} beats, in order, from the opening "
+                    .'through to its final confrontation.',
+                    'These are the spine of the story and you will improvise around them as '
+                    .'the party acts, so leave air between them rather than writing a chain '
+                    .'that only holds if nothing surprising happens. Each beat must also '
+                    .'stand up cold: any one of them may have to follow the previous scene '
+                    .'directly, whatever the party did and whether or not it went well.',
+                ])),
             ],
         ];
     }

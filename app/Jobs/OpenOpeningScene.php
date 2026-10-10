@@ -27,7 +27,7 @@ class OpenOpeningScene implements ShouldQueue
 
     public function failed(?Throwable $e): void
     {
-        app(GameEngine::class)->recordFailure(
+        app(GameEngine::class)->carryOn(
             $this->game,
             $e instanceof DungeonMasterFailed
                 ? $e->getMessage()
