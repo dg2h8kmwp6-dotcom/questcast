@@ -126,7 +126,7 @@
                         @if ($this->scene->isOpen() && filled($this->scene->options))
                             <ul class="mt-8 grid gap-3 sm:grid-cols-2" data-testid="options">
                                 @foreach ($this->scene->options as $option)
-                                    <li class="rounded-xl border border-earth-300 bg-parch-50/85 px-5 py-4">
+                                    <li class="board px-5 py-4">
                                         <span class="narration text-lg text-ink-900">
                                             <span class="text-sun-700">{{ strtoupper($option['key']) }}.</span>
                                             {{ $option['label'] }}
@@ -229,7 +229,7 @@
                         new MutationObserver(pin).observe(list, { childList: true, subtree: true, characterData: true });
                     "
                     x-on:scroll="pinned = $el.scrollHeight - $el.scrollTop - $el.clientHeight < 48"
-                    class="mt-3 min-h-0 max-h-[32vh] flex-1 divide-y divide-earth-300/70 overflow-y-auto pr-2 text-sm lg:max-h-none lg:text-base"
+                    class="board mt-3 min-h-0 max-h-[32vh] flex-1 divide-y divide-earth-300/70 overflow-y-auto px-4 py-1 text-sm lg:max-h-none lg:text-base"
                     data-testid="log">
                     @foreach ($this->log as $event)
                         <li wire:key="log-{{ $event->id }}"
@@ -259,7 +259,7 @@
         him down the road — no animation code, and it cannot desync from the
         actual scene number.
     --}}
-    <footer class="shrink-0 border-t-4 border-grass-600/40 bg-grass-400/25 px-8 pb-7 pt-4">
+    <footer class="shrink-0 border-t-4 border-grass-600/60 bg-grass-400/55 px-8 pb-7 pt-4">
         <div class="relative mx-auto h-28 max-w-6xl">
 
             {{-- The road, and how much of it is behind the party. The track is

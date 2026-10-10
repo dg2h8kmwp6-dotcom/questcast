@@ -71,14 +71,14 @@
                 <div>
                     <label for="title" class="block text-sm font-medium text-ink-900">Title</label>
                     <input id="title" type="text" wire:model="title" autocomplete="off"
-                           class="mt-1.5 w-full rounded-lg border border-earth-400 bg-sky-200 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
+                           class="mt-1.5 w-full rounded-lg border-2 border-earth-400 bg-parch-50 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
                     @error('title') <p class="mt-1.5 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label for="premise" class="block text-sm font-medium text-ink-900">Premise</label>
                     <textarea id="premise" wire:model="premise" rows="4"
-                              class="mt-1.5 w-full resize-none rounded-lg border border-earth-400 bg-sky-200 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500"></textarea>
+                              class="mt-1.5 w-full resize-none rounded-lg border-2 border-earth-400 bg-parch-50 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500"></textarea>
                     <p class="mt-1.5 text-xs text-ink-500">
                         The hook the storyteller builds from. A paragraph is plenty.
                     </p>
@@ -135,7 +135,7 @@
             <input id="code" type="text" wire:model="code" maxlength="5"
                    inputmode="latin" autocapitalize="characters" autocomplete="off" spellcheck="false"
                    placeholder="QUEST"
-                   class="narration mt-5 w-full rounded-lg border border-earth-400 bg-sky-200 px-3 py-4 text-center text-3xl font-semibold uppercase tracking-[0.4em] text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
+                   class="narration mt-5 w-full rounded-lg border-2 border-earth-400 bg-parch-50 px-3 py-4 text-center text-3xl font-semibold uppercase tracking-[0.4em] text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
             @error('code') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
 
             <button type="submit"
