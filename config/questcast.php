@@ -1,0 +1,87 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dungeon Master
+    |--------------------------------------------------------------------------
+    |
+    | "driver" picks who narrates. "claude" calls the Claude API; "scripted" is
+    | a deterministic stand-in that needs no API key, which keeps local play and
+    | the test suite free and offline.
+    |
+    */
+
+    'dm' => [
+        'driver' => env('QUESTCAST_DM_DRIVER', 'claude'),
+
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5'),
+
+        // Narration is creative but not a hard reasoning problem, and the room
+        // is waiting on it, so we trade a little depth for latency. Raise to
+        // "high" if scenes feel shallow.
+        'effort' => env('ANTHROPIC_EFFORT', 'medium'),
+
+        'max_tokens' => (int) env('ANTHROPIC_MAX_TOKENS', 16000),
+
+        // How long a generation job may run before the host screen offers a retry.
+        'stuck_after_seconds' => 120,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Player portraits
+    |--------------------------------------------------------------------------
+    |
+    | Selfies need a disk that can hand back a public URL. Locally that is the
+    | "public" disk; on Laravel Cloud point this at an object storage bucket,
+    | because app instances have an ephemeral filesystem and anything written
+    | beside the code disappears on the next deploy.
+    |
+    */
+
+    'portraits' => [
+        'disk' => env('PORTRAIT_DISK', 'public'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Table defaults
+    |--------------------------------------------------------------------------
+    */
+
+    'defaults' => [
+        'max_players' => 8,
+        'allow_free_text' => true,
+        'starting_hp' => 12,
+    ],
+
+    'tones' => [
+        'sunlit' => 'A bright island hop. Friendly creatures, bouncy peril, nobody stays sad for long.',
+        'canopy' => 'Deep jungle kingdom. Rope bridges, cart tracks, drums, and a hoard worth winning back.',
+        'ruins' => 'Beautiful empty machinery. Everyone has gone; every answer is a puzzle they left behind.',
+        'tempest' => 'Storm-lashed seas and sunken halls. Dark water, real pressure, things that glow.',
+        'frostpeak' => 'A long climb. Snowbound summits, ice caverns, and a warm hearth somewhere above.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Who you can be
+    |--------------------------------------------------------------------------
+    |
+    | Six readable silhouettes rather than a character sheet. The stats are
+    | ordinary ability scores, so a +3 means what it has always meant.
+    |
+    */
+
+    'archetypes' => [
+        'Brawler' => ['strength' => 16, 'dexterity' => 12, 'constitution' => 15, 'intelligence' => 9, 'wisdom' => 11, 'charisma' => 10],
+        'Scout' => ['strength' => 10, 'dexterity' => 17, 'constitution' => 12, 'intelligence' => 13, 'wisdom' => 11, 'charisma' => 14],
+        'Runewright' => ['strength' => 8, 'dexterity' => 12, 'constitution' => 11, 'intelligence' => 17, 'wisdom' => 14, 'charisma' => 10],
+        'Keeper' => ['strength' => 12, 'dexterity' => 10, 'constitution' => 14, 'intelligence' => 11, 'wisdom' => 17, 'charisma' => 13],
+        'Tracker' => ['strength' => 13, 'dexterity' => 16, 'constitution' => 13, 'intelligence' => 11, 'wisdom' => 14, 'charisma' => 9],
+        'Songsmith' => ['strength' => 9, 'dexterity' => 14, 'constitution' => 11, 'intelligence' => 13, 'wisdom' => 11, 'charisma' => 17],
+    ],
+
+];
