@@ -18,6 +18,10 @@ return [
 
         'model' => env('ANTHROPIC_MODEL', 'claude-opus-5'),
 
+        // Reading a premise and naming its register is not a job for the
+        // storyteller's model, and it happens once per game.
+        'classifier_model' => env('ANTHROPIC_CLASSIFIER_MODEL', 'claude-haiku-4-5-20251001'),
+
         // Narration is creative but not a hard reasoning problem, and the room
         // is waiting on it, so we trade a little depth for latency. Raise to
         // "high" if scenes feel shallow.
@@ -120,6 +124,63 @@ return [
         'ruins' => 'Beautiful empty machinery. Everyone has gone; every answer is a puzzle they left behind.',
         'tempest' => 'Storm-lashed seas and sunken halls. Dark water, real pressure, things that glow.',
         'frostpeak' => 'A long climb. Snowbound summits, ice caverns, and a warm hearth somewhere above.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Adventures off the shelf
+    |--------------------------------------------------------------------------
+    |
+    | Staring at an empty premise box is the slowest part of starting a game, so
+    | the home page offers these and lets you edit whatever you pick. Each one
+    | names its own tone; leaving that null sends it through the same inference
+    | a hand-written premise gets.
+    |
+    */
+
+    'adventures' => [
+        [
+            'title' => 'The Clockwork Atoll',
+            'premise' => 'Every chart says the atoll is empty. The brass gulls say otherwise — they wheel '
+                .'over the lagoon at the same hour each day and never once land. Your boat is pulled up '
+                .'on the sand, and the tide is going out.',
+            'tone' => 'sunlit',
+        ],
+        [
+            'title' => 'The Drowned Cathedral',
+            'premise' => 'The tide went out at noon and has not come back. Three miles of open seabed lie '
+                .'steaming in the sun, and at the end of it stands a door that has been underwater since '
+                .'before anyone here kept records. The water returns at dusk.',
+            'tone' => 'tempest',
+        ],
+        [
+            'title' => 'The Lantern Road',
+            'premise' => 'Somebody has been lighting the lamps along the old cart road through the canopy, '
+                .'one every evening, climbing towards a kingdom abandoned sixty years ago. Tonight the whole '
+                .'road is lit, which means whoever is doing it has reached the top.',
+            'tone' => 'canopy',
+        ],
+        [
+            'title' => 'The Patient Machine',
+            'premise' => 'The valley is strung with brass aqueducts that still run, still turn, still pour, '
+                .'and nobody has lived here in four hundred years. At the centre of it something enormous is '
+                .'being watered very carefully. The farms downstream would like it to stop.',
+            'tone' => 'ruins',
+        ],
+        [
+            'title' => 'The Ninth Terrace',
+            'premise' => 'Eight terraces climb the mountain, each with a hearth kept burning by whoever passed '
+                .'through last. The ninth has not been reached in living memory. This week its chimney started '
+                .'smoking, and the snow above it is melting in a straight line.',
+            'tone' => 'frostpeak',
+        ],
+        [
+            'title' => 'The Gullwing Regatta',
+            'premise' => 'Six crews, nine islands, and a trophy nobody alive has actually seen. The race has '
+                .'run every summer for two hundred years without incident, until this morning, when somebody '
+                .'started moving the course markers — and the markers are what keep the boats off the reef.',
+            'tone' => 'sunlit',
+        ],
     ],
 
     /*

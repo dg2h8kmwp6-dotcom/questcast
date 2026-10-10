@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Game;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
@@ -19,16 +20,52 @@ class Home extends Component
     #[Validate('required|string|min:20|max:600')]
     public string $premise = '';
 
-    public string $tone = 'sunlit';
+    /** A real tone key, or "auto" to have one read off the premise. */
+    public string $tone = Game::TONE_AUTO;
+
+    /** Which shelf adventure this started from, for the highlight. */
+    public ?int $chosen = null;
 
     public string $code = '';
 
     public function mount(): void
     {
-        $this->title = 'The Clockwork Atoll';
-        $this->premise = 'Every chart says the atoll is empty. The brass gulls say otherwise — '
-            .'they wheel over the lagoon at the same hour each day and never once land. '
-            .'Your boat is pulled up on the sand, and the tide is going out.';
+        $this->useAdventure(0);
+    }
+
+    /** @return array<int, array{title: string, premise: string, tone: ?string}> */
+    #[Computed]
+    public function adventures(): array
+    {
+        return config('questcast.adventures');
+    }
+
+    /** Fill the form from the shelf. Everything stays editable afterwards. */
+    public function useAdventure(int $index): void
+    {
+        $adventure = $this->adventures[$index] ?? null;
+
+        if (! $adventure) {
+            return;
+        }
+
+        $this->chosen = $index;
+        $this->title = $adventure['title'];
+        $this->premise = $adventure['premise'];
+        $this->tone = $adventure['tone'] ?? Game::TONE_AUTO;
+
+        $this->resetErrorBag();
+    }
+
+    /** Clear the decks for somebody with their own idea. */
+    public function writeMyOwn(): void
+    {
+        $this->chosen = null;
+        $this->title = '';
+        $this->premise = '';
+        $this->tone = Game::TONE_AUTO;
+
+        $this->resetErrorBag();
     }
 
     public function host()
@@ -36,7 +73,10 @@ class Home extends Component
         $this->validate([
             'title' => 'required|string|min:3|max:80',
             'premise' => 'required|string|min:20|max:600',
-            'tone' => ['required', Rule::in(array_keys(config('questcast.tones')))],
+            'tone' => [
+                'required',
+                Rule::in([...array_keys(config('questcast.tones')), Game::TONE_AUTO]),
+            ],
         ]);
 
         $game = Game::start($this->title, $this->premise, $this->tone);

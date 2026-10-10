@@ -24,6 +24,36 @@ class ScriptedDungeonMaster implements DungeonMaster
         'The gallery floods to your knees and then to your waist. Ahead, a door of green glass glows from the other side.',
     ];
 
+    /**
+     * Words that give a premise away, for a DM that cannot read.
+     *
+     * Crude on purpose: this proves the plumbing so the suite can run offline,
+     * and anything subtler would be pretending to be the real classifier.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const TONE_CUES = [
+        'tempest' => ['tide', 'storm', 'drowned', 'sunken', 'seabed', 'wave'],
+        'frostpeak' => ['snow', 'ice', 'frost', 'summit', 'mountain', 'chimney'],
+        'canopy' => ['jungle', 'canopy', 'vine', 'rope bridge', 'cart road', 'drum'],
+        'ruins' => ['ruin', 'brass', 'aqueduct', 'machinery', 'abandoned', 'silent'],
+    ];
+
+    public function chooseTone(Game $game): string
+    {
+        $text = mb_strtolower($game->title.' '.$game->premise);
+
+        $scores = collect(self::TONE_CUES)
+            ->map(fn (array $cues): int => collect($cues)
+                ->filter(fn (string $cue): bool => str_contains($text, $cue))
+                ->count())
+            ->filter();
+
+        return $scores->isEmpty()
+            ? 'sunlit'
+            : (string) $scores->sortDesc()->keys()->first();
+    }
+
     public function openingScene(Game $game): SceneDraft
     {
         return new SceneDraft(

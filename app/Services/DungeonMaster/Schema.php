@@ -18,6 +18,26 @@ class Schema
         'intelligence', 'wisdom', 'charisma', 'none',
     ];
 
+    /**
+     * @param  array<int, string>  $tones
+     * @return array<string, mixed>
+     */
+    public static function tone(array $tones): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'tone' => [
+                    'type' => 'string',
+                    'enum' => array_values($tones),
+                    'description' => 'The key of the tone that best fits the premise.',
+                ],
+            ],
+            'required' => ['tone'],
+            'additionalProperties' => false,
+        ];
+    }
+
     public static function scene(): array
     {
         return [

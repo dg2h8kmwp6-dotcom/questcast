@@ -19,6 +19,60 @@ class ClaudeDungeonMaster implements DungeonMaster
         private readonly Transcript $transcript,
     ) {}
 
+    /**
+     * A single cheap call, on the small model, before anything else happens.
+     *
+     * This runs once per game and never again, so it is deliberately kept off
+     * the storyteller's own model and out of the cached system prompt.
+     */
+    public function chooseTone(Game $game): string
+    {
+        $tones = config('questcast.tones');
+
+        $catalogue = collect($tones)
+            ->map(fn (string $description, string $key): string => "{$key} — {$description}")
+            ->implode("\n");
+
+        $system = <<<PROMPT
+        You choose the register a tabletop adventure will be run in.
+
+        Read the title and premise and pick the single tone below that best fits
+        what this room is about to play. Judge it on the feel of the place and
+        the kind of trouble in it, not on isolated words.
+
+        {$catalogue}
+        PROMPT;
+
+        try {
+            $message = $this->client->messages->create(
+                model: config('questcast.dm.classifier_model'),
+                maxTokens: 256,
+                system: $system,
+                messages: [[
+                    'role' => 'user',
+                    'content' => "Title: {$game->title}\n\nPremise: {$game->premise}",
+                ]],
+                outputConfig: [
+                    'format' => [
+                        'type' => 'json_schema',
+                        'schema' => Schema::tone(array_keys($tones)),
+                    ],
+                ],
+            );
+
+            return (string) ($this->decode($message)['tone'] ?? '');
+        } catch (Throwable $e) {
+            // A mood is a convenience. Losing it costs the host a default, not
+            // a game, so this never propagates.
+            Log::warning('Could not infer a tone from the premise.', [
+                'game_id' => $game->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return '';
+        }
+    }
+
     public function openingScene(Game $game): SceneDraft
     {
         $payload = $this->ask(

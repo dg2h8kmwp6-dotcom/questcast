@@ -90,6 +90,8 @@ class GameEngine
     /** Called from the queue: ask the DM for scene one and open it. */
     public function openOpeningScene(Game $game): Scene
     {
+        $this->settleTone($game);
+
         $draft = $this->dm->openingScene($game);
 
         return DB::transaction(function () use ($game, $draft) {
@@ -240,6 +242,28 @@ class GameEngine
 
             GameUpdated::dispatch($game->fresh(), 'scene-opened');
         });
+    }
+
+    /**
+     * Settle the register before the storyteller is asked for anything.
+     *
+     * A host who did not pick a tone gets one read off their own premise, once,
+     * and it is written down. Deciding it here rather than inside the prompt is
+     * what keeps every later round building the identical, cacheable system
+     * prompt instead of re-reading the room's mood each time.
+     */
+    private function settleTone(Game $game): void
+    {
+        if ($game->tone !== Game::TONE_AUTO) {
+            return;
+        }
+
+        $known = array_keys(config('questcast.tones'));
+        $chosen = $this->dm->chooseTone($game);
+
+        $game->update([
+            'tone' => in_array($chosen, $known, true) ? $chosen : (string) reset($known),
+        ]);
     }
 
     /** @param array<int,StateChange> $changes */

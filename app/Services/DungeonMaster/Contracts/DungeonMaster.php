@@ -9,6 +9,15 @@ use App\Services\DungeonMaster\SceneDraft;
 
 interface DungeonMaster
 {
+    /**
+     * Pick the register this premise should be run in.
+     *
+     * Only consulted when the host did not choose one. Returning anything that
+     * is not a known tone — including an empty string when the attempt failed —
+     * leaves the caller to fall back, because a mood is never worth a lost game.
+     */
+    public function chooseTone(Game $game): string;
+
     /** Write the opening scene for a game that has only a premise and a party. */
     public function openingScene(Game $game): SceneDraft;
 

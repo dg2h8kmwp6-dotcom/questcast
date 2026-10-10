@@ -39,6 +39,34 @@
             <h2 class="text-lg font-semibold text-white">Run an adventure</h2>
             <p class="mt-1 text-sm text-deep-400">This device becomes the map on the wall.</p>
 
+            {{-- The slowest part of starting a game is an empty premise box, so
+                 there is always something in it. Everything a pick fills in
+                 stays editable. --}}
+            <div class="mt-5">
+                <span class="block text-sm font-medium text-deep-200">Start from</span>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    @foreach ($this->adventures as $index => $adventure)
+                        <button type="button" wire:click="useAdventure({{ $index }})"
+                                @class([
+                                    'springy rounded-lg border px-3 py-1.5 text-sm transition',
+                                    'border-gold-500 bg-gold-500/10 text-gold-300' => $chosen === $index,
+                                    'border-deep-800 text-deep-400 hover:border-deep-700 hover:text-white' => $chosen !== $index,
+                                ])>
+                            {{ $adventure['title'] }}
+                        </button>
+                    @endforeach
+
+                    <button type="button" wire:click="writeMyOwn"
+                            @class([
+                                'springy rounded-lg border border-dashed px-3 py-1.5 text-sm transition',
+                                'border-gold-500 text-gold-300' => $chosen === null,
+                                'border-deep-800 text-deep-400 hover:border-deep-700 hover:text-white' => $chosen !== null,
+                            ])>
+                        Write my own
+                    </button>
+                </div>
+            </div>
+
             <div class="mt-5 space-y-4">
                 <div>
                     <label for="title" class="block text-sm font-medium text-deep-200">Title</label>
@@ -58,7 +86,22 @@
                 </div>
 
                 <fieldset>
-                    <legend class="block text-sm font-medium text-deep-200">Tone</legend>
+                    <legend class="block text-sm font-medium text-deep-200">
+                        Tone <span class="font-normal text-deep-400">&middot; optional</span>
+                    </legend>
+
+                    <label class="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition
+                                  {{ $tone === \App\Models\Game::TONE_AUTO ? 'border-gold-500 bg-gold-500/10' : 'border-deep-800 hover:border-deep-700' }}">
+                        <input type="radio" wire:model.live="tone" value="{{ \App\Models\Game::TONE_AUTO }}"
+                               class="mt-0.5 accent-gold-500">
+                        <span>
+                            <span class="block text-sm font-medium text-white">Let the storyteller decide</span>
+                            <span class="block text-xs text-deep-400">
+                                The tone is read off your premise before the first scene is written.
+                            </span>
+                        </span>
+                    </label>
+
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
                         @foreach ($tones as $key => $description)
                             <label class="flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition

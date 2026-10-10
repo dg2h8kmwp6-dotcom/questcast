@@ -13,6 +13,15 @@ use Illuminate\Support\Str;
 
 class Game extends Model
 {
+    /**
+     * A tone nobody chose.
+     *
+     * Held in the same column as a real tone rather than as a null, so the
+     * column never has to change under a running game. It is replaced with a
+     * real one the moment the storyteller is first asked for anything.
+     */
+    public const TONE_AUTO = 'auto';
+
     /** @use HasFactory<GameFactory> */
     use HasFactory;
 
@@ -39,7 +48,7 @@ class Game extends Model
         ];
     }
 
-    public static function start(string $title, string $premise, string $tone = 'sunlit'): self
+    public static function start(string $title, string $premise, string $tone = self::TONE_AUTO): self
     {
         return self::create([
             'code' => self::freshCode(),
