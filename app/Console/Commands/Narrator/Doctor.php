@@ -5,6 +5,7 @@ namespace App\Console\Commands\Narrator;
 use App\Models\Scene;
 use App\Services\Narrator\Contracts\Narrator;
 use App\Services\Narrator\SilentNarrator;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -36,6 +37,7 @@ class Doctor extends Command
         $this->components->info('Checking the storyteller.');
 
         $this->checkMigration();
+        $this->checkColumnWidths();
         $this->checkDriver();
         $this->checkDisk();
         $this->checkStoredAudio();
@@ -193,16 +195,46 @@ class Doctor extends Command
     {
         $recent = DB::table('failed_jobs')->latest('failed_at')->limit(3)->get();
 
+        $stale = 0;
+
         foreach ($recent as $job) {
             $name = json_decode($job->payload, true)['displayName'] ?? 'unknown job';
             $line = strtok((string) $job->exception, "\n");
+            $when = Carbon::parse($job->failed_at);
 
-            $this->bad('Failed job', "{$name} — ".mb_substr((string) $line, 0, 160));
+            if ($when->lt(now()->subHour())) {
+                $stale++;
+            }
+
+            $this->bad('Failed job', "{$when->diffForHumans()} — {$name} — ".mb_substr((string) $line, 0, 140));
 
             if (str_contains((string) $job->exception, 'not instantiable')) {
                 $this->bad('Likely cause', 'that worker booted before this code was deployed — restart it (php artisan queue:restart)');
             }
         }
+
+        if ($stale > 0) {
+            $this->ok('Note', "{$stale} of those are over an hour old and may already be fixed — php artisan queue:flush clears the history so this reads live");
+        }
+    }
+
+    /**
+     * The column that quietly killed whole rounds on MySQL.
+     *
+     * A varchar(255) holding storyteller-written text aborts the round with
+     * "Data too long" the moment it overflows, and SQLite never reproduces it.
+     */
+    private function checkColumnWidths(): void
+    {
+        try {
+            $type = Schema::getColumnType('scenes', 'image_prompt');
+        } catch (Throwable) {
+            return;
+        }
+
+        in_array(strtolower($type), ['text', 'longtext', 'mediumtext'], true)
+            ? $this->ok('Column widths', 'image_prompt is text')
+            : $this->bad('Column widths', "image_prompt is [{$type}], not text — a long prompt will abort the round. Run php artisan migrate");
     }
 
     private function checkBundle(): void
