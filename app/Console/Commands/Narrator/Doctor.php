@@ -109,6 +109,10 @@ class Doctor extends Command
 
         $driver = (string) config("filesystems.disks.{$name}.driver");
 
+        if (! $this->checkDiskCredentials($name, $driver)) {
+            return;
+        }
+
         if ($driver === 'local' && ! app()->environment('local', 'testing')) {
             $this->bad('Disk', "narration is on [{$name}], a local disk, outside local env — the worker that writes the audio and the server that serves it are different machines. Point NARRATION_DISK at object storage.");
         } else {
@@ -119,9 +123,16 @@ class Doctor extends Command
             $probe = 'narration/.doctor-'.bin2hex(random_bytes(4));
             $disk = Storage::disk($name);
 
-            $disk->put($probe, 'probe');
+            // put() returns false rather than raising, because this disk is
+            // configured with throw => false. Taking it on trust is how a
+            // broken bucket reported itself as healthy.
+            if ($disk->put($probe, 'probe') !== true || ! $disk->exists($probe)) {
+                $this->bad('Disk write', 'the write did not land. This disk swallows its own errors (throw => false), so check the credentials above before anything else.');
 
-            $this->ok('Disk write', 'wrote '.$probe);
+                return;
+            }
+
+            $this->ok('Disk write', 'wrote and read back '.$probe);
 
             // Both, because they fail for different reasons and only one of
             // them is what the host screen actually hands the browser.
@@ -149,6 +160,44 @@ class Doctor extends Command
         } catch (Throwable $e) {
             $this->bad('Disk write', $e->getMessage());
         }
+    }
+
+    /**
+     * Half-configured object storage fails in ways that read like other bugs.
+     *
+     * An empty bucket name does not announce itself: writes return false, URL
+     * signing throws, and the SDK complains about HeadObject somewhere deep in
+     * a queued job. Checking the values first turns all of that into one line.
+     */
+    private function checkDiskCredentials(string $name, string $driver): bool
+    {
+        if ($driver !== 's3') {
+            return true;
+        }
+
+        $envFor = [
+            'key' => 'AWS_ACCESS_KEY_ID',
+            'secret' => 'AWS_SECRET_ACCESS_KEY',
+            'region' => 'AWS_DEFAULT_REGION',
+            'bucket' => 'AWS_BUCKET',
+        ];
+
+        $config = config("filesystems.disks.{$name}", []);
+
+        $missing = collect($envFor)
+            ->filter(fn (string $env, string $key): bool => blank($config[$key] ?? null))
+            ->values()
+            ->all();
+
+        if ($missing !== []) {
+            $this->bad('Disk config', 'empty: '.implode(', ', $missing));
+
+            return false;
+        }
+
+        $this->ok('Disk config', 'credentials, region and bucket are all set');
+
+        return true;
     }
 
     /**
