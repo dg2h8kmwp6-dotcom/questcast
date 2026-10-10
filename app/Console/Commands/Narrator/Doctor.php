@@ -163,8 +163,34 @@ class Doctor extends Command
             if ($pending > 5) {
                 $this->bad('Queue', "{$pending} jobs are waiting — is a worker running?");
             }
+
+            $this->reportFailedJobs();
         } catch (Throwable $e) {
             $this->ok('Queue', 'not using database tables, skipped');
+        }
+    }
+
+    /**
+     * What actually went wrong, rather than how many times.
+     *
+     * A worker is a long-running process that builds its container once, so one
+     * started before a provider or a job class existed will fail every job it
+     * is handed and keep doing so until it is restarted. That failure only ever
+     * shows up here, which is why the exception matters more than the count.
+     */
+    private function reportFailedJobs(): void
+    {
+        $recent = DB::table('failed_jobs')->latest('failed_at')->limit(3)->get();
+
+        foreach ($recent as $job) {
+            $name = json_decode($job->payload, true)['displayName'] ?? 'unknown job';
+            $line = strtok((string) $job->exception, "\n");
+
+            $this->bad('Failed job', "{$name} — ".mb_substr((string) $line, 0, 160));
+
+            if (str_contains((string) $job->exception, 'not instantiable')) {
+                $this->bad('Likely cause', 'that worker booted before this code was deployed — restart it (php artisan queue:restart)');
+            }
         }
     }
 
