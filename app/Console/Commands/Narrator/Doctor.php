@@ -120,10 +120,30 @@ class Doctor extends Command
             $disk = Storage::disk($name);
 
             $disk->put($probe, 'probe');
-            $url = $disk->url($probe);
 
-            $this->ok('Disk write', 'wrote '.$url);
-            $this->checkPubliclyReadable($url);
+            $this->ok('Disk write', 'wrote '.$probe);
+
+            // Both, because they fail for different reasons and only one of
+            // them is what the host screen actually hands the browser.
+            $plainWorks = $this->reaches($disk->url($probe));
+
+            $plainWorks
+                ? $this->ok('Plain URL', 'HTTP 200 — the bucket serves files directly')
+                : $this->ok('Plain URL', 'not readable directly, which is normal for a private bucket');
+
+            try {
+                $signed = $disk->temporaryUrl($probe, now()->addMinutes(5));
+
+                $this->reaches($signed)
+                    ? $this->ok('Signed URL', 'HTTP 200 — this is the link the big screen uses')
+                    : $this->bad('Signed URL', 'signing works but the link still will not load — check AWS_URL and the bucket endpoint');
+            } catch (Throwable) {
+                // Falling back to the plain URL is the designed behaviour, so
+                // this is only a problem when there is nothing to fall back to.
+                $plainWorks
+                    ? $this->ok('Signed URL', 'unsupported on this disk; the plain URL works, so links fall back to it')
+                    : $this->bad('Signed URL', 'this disk cannot sign links and the plain URL is unreadable — nothing can play');
+            }
 
             $disk->delete($probe);
         } catch (Throwable $e) {
@@ -134,25 +154,25 @@ class Doctor extends Command
     /**
      * A generated URL is not the same as a reachable one.
      *
-     * The host screen fetches these mp3s straight from the browser, so a
-     * private bucket means a 403 the room never sees — the audio element just
-     * fails and the story stays silent.
+     * The host screen fetches these mp3s straight from the browser, so every
+     * other check here can pass while the room hears nothing: the file is
+     * written, the path is stored, the link is rendered, and the fetch 403s.
+     * This is the only check that looks at it the way a browser does.
      */
-    private function checkPubliclyReadable(string $url): void
+    private function fetch(string $label, string $url, string $hint): void
+    {
+        $this->reaches($url)
+            ? $this->ok($label, 'HTTP 200 — a browser can play this')
+            : $this->bad($label, $hint);
+    }
+
+    private function reaches(string $url): bool
     {
         try {
-            $status = Http::timeout(10)->withoutRedirecting()->get($url)->status();
-        } catch (Throwable $e) {
-            // No answer at all usually means the app simply is not serving on
-            // this URL from here, which says nothing about the bucket.
-            $this->ok('Public read', 'could not be checked from here ('.class_basename($e).')');
-
-            return;
+            return Http::timeout(10)->withoutRedirecting()->get($url)->status() === 200;
+        } catch (Throwable) {
+            return false;
         }
-
-        $status === 200
-            ? $this->ok('Public read', 'HTTP 200 — a browser can play this')
-            : $this->bad('Public read', "HTTP {$status} — the bucket is not publicly readable, so the host screen cannot play the audio");
     }
 
     private function checkStoredAudio(): void
@@ -181,9 +201,18 @@ class Doctor extends Command
         $newest = Scene::whereNotNull('narration_audio_path')->latest('id')->first();
         $disk = Storage::disk(config('questcast.narrator.disk'));
 
-        $disk->exists($newest->narration_audio_path)
-            ? $this->ok('Newest file', $newest->narration_audio_path.' is on the disk')
-            : $this->bad('Newest file', $newest->narration_audio_path.' is recorded but NOT on this disk — this is the ephemeral-disk failure.');
+        if (! $disk->exists($newest->narration_audio_path)) {
+            $this->bad('Newest file', $newest->narration_audio_path.' is recorded but NOT on this disk.');
+
+            return;
+        }
+
+        $this->ok('Newest file', $newest->narration_audio_path.' is on the disk');
+
+        // The exact link the big screen would put in front of a browser.
+        if ($url = $newest->narrationAudioUrl()) {
+            $this->fetch('Newest playable', $url, 'the host screen cannot play this scene');
+        }
     }
 
     private function checkQueue(): void
