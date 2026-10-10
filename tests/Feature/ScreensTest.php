@@ -15,7 +15,7 @@ beforeEach(fn () => config()->set('questcast.dm.driver', 'scripted'));
 it('shows the landing page', function () {
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee('Islands to cross', false)
+        ->assertSee('A world to cross', false)
         ->assertSee('Join the party');
 });
 

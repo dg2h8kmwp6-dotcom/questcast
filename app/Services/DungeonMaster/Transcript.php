@@ -39,9 +39,10 @@ class Transcript
 
         # The world
 
-        These adventures are set in bright, hand-built places: sunlit island chains,
-        jungle kingdoms strung with rope bridges and cart tracks, and the beautiful
-        silent ruins of people who were very clever with brass and water. The feeling
+        These adventures are set in bright, hand-built places: sunlit valleys and high
+        plateaus, forest kingdoms strung with rope bridges and cart tracks, and the
+        beautiful silent ruins of people who were very clever with brass and running
+        water. The feeling
         is a classic adventure game — wonder first, peril second, cruelty never.
 
         - Describe places with shape to them: ledges, vines, waterfalls, collapsing

@@ -119,10 +119,10 @@ return [
     ],
 
     'tones' => [
-        'sunlit' => 'A bright island hop. Friendly creatures, bouncy peril, nobody stays sad for long.',
-        'canopy' => 'Deep jungle kingdom. Rope bridges, cart tracks, drums, and a hoard worth winning back.',
+        'sunlit' => 'A bright day on the road. Friendly creatures, bouncy peril, nobody stays sad for long.',
+        'canopy' => 'Deep forest kingdom. Rope bridges, cart tracks, drums, and a hoard worth winning back.',
         'ruins' => 'Beautiful empty machinery. Everyone has gone; every answer is a puzzle they left behind.',
-        'tempest' => 'Storm-lashed seas and sunken halls. Dark water, real pressure, things that glow.',
+        'tempest' => 'Storm-lashed highlands and flooded halls. Hard weather, real pressure, things that glow.',
         'frostpeak' => 'A long climb. Snowbound summits, ice caverns, and a warm hearth somewhere above.',
     ],
 
@@ -162,17 +162,17 @@ return [
 
     'adventures' => [
         [
-            'title' => 'The Clockwork Atoll',
-            'premise' => 'Every chart says the atoll is empty. The brass gulls say otherwise — they wheel '
-                .'over the lagoon at the same hour each day and never once land. Your boat is pulled up '
-                .'on the sand, and the tide is going out.',
+            'title' => 'The Clockwork Valley',
+            'premise' => 'Every map says the valley is empty. The brass birds say otherwise — they circle '
+                .'the old quarry at the same hour each day and never once land. Your cart is unhitched at '
+                .'the treeline, and the light is going.',
             'tone' => 'sunlit',
         ],
         [
-            'title' => 'The Drowned Cathedral',
-            'premise' => 'The tide went out at noon and has not come back. Three miles of open seabed lie '
-                .'steaming in the sun, and at the end of it stands a door that has been underwater since '
-                .'before anyone here kept records. The water returns at dusk.',
+            'title' => 'The Buried Gate',
+            'premise' => 'The quarry crew hit a door forty feet down and walked off the site the same '
+                .'afternoon. The pit floods when it rains, the sky has not cleared in a week, and the '
+                .'foreman is offering a month of wages to whoever goes down first.',
             'tone' => 'tempest',
         ],
         [
@@ -197,10 +197,11 @@ return [
             'tone' => 'frostpeak',
         ],
         [
-            'title' => 'The Gullwing Regatta',
-            'premise' => 'Six crews, nine islands, and a trophy nobody alive has actually seen. The race has '
-                .'run every summer for two hundred years without incident, until this morning, when somebody '
-                .'started moving the course markers — and the markers are what keep the boats off the reef.',
+            'title' => 'The Banner Run',
+            'premise' => 'Six teams, nine waystations, and a prize nobody alive has actually seen. The run '
+                .'has crossed these hills every summer for two hundred years without incident, until this '
+                .'morning, when somebody started moving the trail markers — and the markers are what keep '
+                .'runners off the scree.',
             'tone' => 'sunlit',
         ],
     ],

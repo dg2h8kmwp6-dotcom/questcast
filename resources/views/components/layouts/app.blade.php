@@ -7,7 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127757;</text></svg>">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full bg-deep-950 text-deep-200 antialiased">
+<body class="h-full bg-sky-200 text-ink-900 antialiased">
     {{ $slot }}
 </body>
 </html>

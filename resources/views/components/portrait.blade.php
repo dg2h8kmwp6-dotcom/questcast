@@ -6,9 +6,9 @@
     across the room.
 --}}
 <span {{ $attributes->class([
-        'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-deep-800 text-deep-200',
-        'ring-2 ring-deep-700' => $ring && $player->isAlive(),
-        'ring-2 ring-red-500/60 grayscale' => ! $player->isAlive(),
+        'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-parch-200 text-ink-900',
+        'ring-2 ring-earth-400' => $ring && $player->isAlive(),
+        'ring-2 ring-red-600/70 grayscale' => ! $player->isAlive(),
     ]) }}>
     @if ($player->hasPortrait())
         <img src="{{ $player->portraitUrl() }}" alt="{{ $player->displayName() }}"

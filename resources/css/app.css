@@ -11,24 +11,39 @@
 @theme {
     --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
 
-    /* Deep water and jungle shade: dark enough to project, warm enough to
-       feel like somewhere rather than a dashboard. */
-    --color-deep-950: oklch(0.16 0.03 220);
-    --color-deep-900: oklch(0.21 0.035 220);
-    --color-deep-800: oklch(0.27 0.04 218);
-    --color-deep-700: oklch(0.35 0.04 215);
-    --color-deep-400: oklch(0.65 0.03 210);
-    --color-deep-200: oklch(0.88 0.02 200);
+    /* Daylight. The world the whole map sits under. */
+    --color-sky-100: oklch(0.955 0.028 230);
+    --color-sky-200: oklch(0.900 0.055 232);
+    --color-sky-300: oklch(0.825 0.085 235);
 
-    /* Banana gold: the colour of treasure and of every button worth pressing. */
-    --color-gold-500: oklch(0.78 0.15 80);
-    --color-gold-400: oklch(0.84 0.13 85);
-    --color-gold-300: oklch(0.90 0.09 90);
+    /* Parchment and sun-bleached canvas: every panel is an object you could
+       pick up off the table, not a rectangle of background. */
+    --color-parch-50: oklch(0.985 0.012 85);
+    --color-parch-100: oklch(0.955 0.022 82);
+    --color-parch-200: oklch(0.900 0.038 78);
 
-    /* Shallow reef: cool counterpoint for calm, informational things. */
-    --color-reef-400: oklch(0.78 0.12 200);
+    /* Carved wood and track dirt: borders, edges, the road itself. */
+    --color-earth-300: oklch(0.780 0.055 65);
+    --color-earth-400: oklch(0.655 0.080 58);
+    --color-earth-500: oklch(0.540 0.085 52);
+    --color-earth-700: oklch(0.360 0.060 50);
+
+    /* Ink. What you actually read, from across a room. */
+    --color-ink-900: oklch(0.260 0.035 55);
+    --color-ink-500: oklch(0.470 0.035 58);
+
+    /* Meadow: ground covered, and everything going the party's way. */
+    --color-grass-400: oklch(0.760 0.155 145);
+    --color-grass-500: oklch(0.655 0.170 147);
+    --color-grass-600: oklch(0.535 0.150 148);
+
+    /* Treasure. Bright enough to fill a button, and a darker tone for the
+       same idea in text, because gold on parchment cannot be read. */
+    --color-sun-300: oklch(0.910 0.100 88);
+    --color-sun-400: oklch(0.840 0.150 82);
+    --color-sun-500: oklch(0.770 0.170 74);
+    --color-sun-700: oklch(0.520 0.150 55);
 }
-
 
 /* Narration is read aloud across a room, so it is sized for distance. */
 .narration {
@@ -55,12 +70,38 @@
 .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
 .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Cards in this world are carved objects, not flat panels. */
+/* Cards in this world are carved objects, not flat panels: a thick edge, a
+   lip of light along the top, and a shadow that sits them on the map. */
 .chunky {
     border-radius: 1.25rem;
+    border-width: 3px;
     box-shadow:
-        0 1px 0 0 oklch(1 0 0 / 0.06) inset,
-        0 18px 40px -20px oklch(0 0 0 / 0.9);
+        0 2px 0 0 oklch(1 0 0 / 0.65) inset,
+        0 6px 0 0 var(--color-earth-400),
+        0 14px 24px -12px oklch(0.36 0.06 50 / 0.45);
+}
+
+/* The signpost treatment: panels on the big screen read as painted boards. */
+.board {
+    background: var(--color-parch-50);
+    border: 3px solid var(--color-earth-400);
+    border-radius: 1rem;
+    box-shadow:
+        0 2px 0 0 oklch(1 0 0 / 0.7) inset,
+        0 5px 0 0 var(--color-earth-500);
+}
+
+/* The road underfoot: a dirt track with a lighter worn centre. */
+.road {
+    background:
+        linear-gradient(
+            to bottom,
+            var(--color-earth-500) 0%,
+            var(--color-earth-400) 45%,
+            var(--color-earth-500) 100%
+        );
+    border-radius: 999px;
+    box-shadow: 0 2px 0 0 oklch(0.36 0.06 50 / 0.35);
 }
 
 /* A press should feel like a press. */

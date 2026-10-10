@@ -33,8 +33,8 @@ it('starts a game with no tone chosen', function () {
 it('reads a tone off the premise before writing the opening scene', function () {
     $game = Game::factory()->create([
         'tone' => Game::TONE_AUTO,
-        'title' => 'The Drowned Cathedral',
-        'premise' => 'The tide went out at noon and has not come back. Three miles of seabed lie open.',
+        'title' => 'The Buried Gate',
+        'premise' => 'The storm has not let up in a week and the pit floods faster than the crew can bail it.',
     ]);
     Player::factory()->for($game)->create();
 

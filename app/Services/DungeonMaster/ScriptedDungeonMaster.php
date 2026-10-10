@@ -17,7 +17,7 @@ use App\Services\DungeonMaster\Contracts\DungeonMaster;
 class ScriptedDungeonMaster implements DungeonMaster
 {
     private const BEATS = [
-        'The jetty gives way to white sand and, past it, a staircase cut straight into the cliff. Something up there is turning: you can hear brass teeth counting out a rhythm.',
+        'The cart track gives way to open meadow and, past it, a staircase cut straight into the cliff. Something up there is turning: you can hear brass teeth counting out a rhythm.',
         'The stair opens onto a terrace of still pools, each one draining into the next through a sluice somebody closed a very long time ago.',
         'A rope bridge crosses the gorge in three spans. The middle span is missing, and the mist below is going up, not down.',
         'The cart track runs into the mountain and keeps going. A lantern is burning at the far end, which means somebody filled it this week.',
@@ -33,7 +33,7 @@ class ScriptedDungeonMaster implements DungeonMaster
      * @var array<string, array<int, string>>
      */
     private const TONE_CUES = [
-        'tempest' => ['tide', 'storm', 'drowned', 'sunken', 'seabed', 'wave'],
+        'tempest' => ['storm', 'flood', 'thunder', 'gale', 'sunken', 'downpour'],
         'frostpeak' => ['snow', 'ice', 'frost', 'summit', 'mountain', 'chimney'],
         'canopy' => ['jungle', 'canopy', 'vine', 'rope bridge', 'cart road', 'drum'],
         'ruins' => ['ruin', 'brass', 'aqueduct', 'machinery', 'abandoned', 'silent'],
@@ -60,7 +60,7 @@ class ScriptedDungeonMaster implements DungeonMaster
             ->map(fn (int $i): SceneDraft => new SceneDraft(
                 narration: self::BEATS[$i % count(self::BEATS)],
                 options: $this->options(),
-                imagePrompt: 'A planned beat somewhere along the island chain.',
+                imagePrompt: 'A planned beat somewhere along the road.',
                 bridge: 'However that went, you come out of it moving, and the way on is clear enough.',
             ))
             ->all();
@@ -71,7 +71,7 @@ class ScriptedDungeonMaster implements DungeonMaster
         return new SceneDraft(
             narration: self::BEATS[0],
             options: $this->options(),
-            imagePrompt: 'A sunlit island jetty beneath a cliff stair, brass machinery turning above.',
+            imagePrompt: 'A sunlit meadow beneath a cliff stair, brass machinery turning above.',
         );
     }
 
@@ -108,7 +108,7 @@ class ScriptedDungeonMaster implements DungeonMaster
             nextScene: new SceneDraft(
                 narration: self::BEATS[$next],
                 options: $this->options(),
-                imagePrompt: 'A lamplit interior of brass and water, deep inside an island.',
+                imagePrompt: 'A lamplit interior of brass and water, deep inside a mountain.',
             ),
             gameOver: $scene->number >= 8,
             outcome: $scene->number >= 8 ? 'victory' : null,

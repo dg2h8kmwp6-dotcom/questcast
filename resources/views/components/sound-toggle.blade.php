@@ -8,9 +8,9 @@
         aria-pressed="false" aria-label="Turn sound off"
         {{ $attributes->class([
             'springy flex size-10 shrink-0 items-center justify-center rounded-full',
-            'border border-deep-700 bg-deep-900/70 text-deep-400',
-            'hover:border-gold-500 hover:text-gold-300',
-            'focus:outline-none focus:ring-2 focus:ring-gold-500',
+            'border border-earth-400 bg-parch-100/90 text-ink-500',
+            'hover:border-sun-500 hover:text-sun-700',
+            'focus:outline-none focus:ring-2 focus:ring-sun-500',
         ]) }}>
     <span data-sound-on aria-hidden="true">
         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

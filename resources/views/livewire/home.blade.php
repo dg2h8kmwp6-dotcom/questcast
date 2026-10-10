@@ -9,7 +9,7 @@
              keeps the cut-out from floating on the dark background. --}}
         <div class="relative shrink-0">
             <div aria-hidden="true"
-                 class="absolute inset-x-0 bottom-0 h-2/3 rounded-full bg-gold-500/20 blur-3xl"></div>
+                 class="absolute inset-x-0 bottom-0 h-2/3 rounded-full bg-sun-400/35 blur-3xl"></div>
             <img src="{{ asset('img/adventurer.png') }}"
                  alt="An adventurer in a wide-brimmed hat, striding off on a quest"
                  width="320" height="320" fetchpriority="high"
@@ -17,15 +17,15 @@
         </div>
 
         <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-gold-500">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-sun-700">
                 Aaron&rsquo;s Adventures
             </p>
-            <h1 class="narration mt-3 text-5xl font-semibold text-white sm:text-6xl">
-                Islands to cross.<br class="hidden sm:inline"> Everyone&rsquo;s phone.
+            <h1 class="narration mt-3 text-5xl font-semibold text-ink-900 sm:text-6xl">
+                A world to cross.<br class="hidden sm:inline"> Everyone&rsquo;s phone.
             </h1>
-            <p class="mx-auto mt-4 max-w-xl text-pretty text-deep-400 lg:mx-0">
+            <p class="mx-auto mt-4 max-w-xl text-pretty text-ink-500 lg:mx-0">
                 Put the map on the TV and let the room scan in. A storyteller runs
-                the island, you decide what the party does, and the dice are rolled
+                the world, you decide where the party goes, and the dice are rolled
                 honestly on the server.
             </p>
         </div>
@@ -35,22 +35,22 @@
 
         {{-- Host: create a new adventure --}}
         <form wire:submit="host"
-              class="chunky md:col-span-3 border border-deep-800 bg-deep-900/70 p-6">
-            <h2 class="text-lg font-semibold text-white">Run an adventure</h2>
-            <p class="mt-1 text-sm text-deep-400">This device becomes the map on the wall.</p>
+              class="chunky md:col-span-3 border border-earth-300 bg-parch-100/90 p-6">
+            <h2 class="text-lg font-semibold text-ink-900">Run an adventure</h2>
+            <p class="mt-1 text-sm text-ink-500">This device becomes the map on the wall.</p>
 
             {{-- The slowest part of starting a game is an empty premise box, so
                  there is always something in it. Everything a pick fills in
                  stays editable. --}}
             <div class="mt-5">
-                <span class="block text-sm font-medium text-deep-200">Start from</span>
+                <span class="block text-sm font-medium text-ink-900">Start from</span>
                 <div class="mt-2 flex flex-wrap gap-2">
                     @foreach ($this->adventures as $index => $adventure)
                         <button type="button" wire:click="useAdventure({{ $index }})"
                                 @class([
                                     'springy rounded-lg border px-3 py-1.5 text-sm transition',
-                                    'border-gold-500 bg-gold-500/10 text-gold-300' => $chosen === $index,
-                                    'border-deep-800 text-deep-400 hover:border-deep-700 hover:text-white' => $chosen !== $index,
+                                    'border-sun-500 bg-sun-400/30 text-sun-700' => $chosen === $index,
+                                    'border-earth-300 text-ink-500 hover:border-earth-500 hover:text-ink-900' => $chosen !== $index,
                                 ])>
                             {{ $adventure['title'] }}
                         </button>
@@ -59,8 +59,8 @@
                     <button type="button" wire:click="writeMyOwn"
                             @class([
                                 'springy rounded-lg border border-dashed px-3 py-1.5 text-sm transition',
-                                'border-gold-500 text-gold-300' => $chosen === null,
-                                'border-deep-800 text-deep-400 hover:border-deep-700 hover:text-white' => $chosen !== null,
+                                'border-sun-500 text-sun-700' => $chosen === null,
+                                'border-earth-300 text-ink-500 hover:border-earth-500 hover:text-ink-900' => $chosen !== null,
                             ])>
                         Write my own
                     </button>
@@ -69,34 +69,34 @@
 
             <div class="mt-5 space-y-4">
                 <div>
-                    <label for="title" class="block text-sm font-medium text-deep-200">Title</label>
+                    <label for="title" class="block text-sm font-medium text-ink-900">Title</label>
                     <input id="title" type="text" wire:model="title" autocomplete="off"
-                           class="mt-1.5 w-full rounded-lg border border-deep-700 bg-deep-950 px-3 py-2.5 text-white placeholder:text-deep-700 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500">
-                    @error('title') <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p> @enderror
+                           class="mt-1.5 w-full rounded-lg border border-earth-400 bg-sky-200 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
+                    @error('title') <p class="mt-1.5 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label for="premise" class="block text-sm font-medium text-deep-200">Premise</label>
+                    <label for="premise" class="block text-sm font-medium text-ink-900">Premise</label>
                     <textarea id="premise" wire:model="premise" rows="4"
-                              class="mt-1.5 w-full resize-none rounded-lg border border-deep-700 bg-deep-950 px-3 py-2.5 text-white placeholder:text-deep-700 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500"></textarea>
-                    <p class="mt-1.5 text-xs text-deep-400">
+                              class="mt-1.5 w-full resize-none rounded-lg border border-earth-400 bg-sky-200 px-3 py-2.5 text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500"></textarea>
+                    <p class="mt-1.5 text-xs text-ink-500">
                         The hook the storyteller builds from. A paragraph is plenty.
                     </p>
-                    @error('premise') <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p> @enderror
+                    @error('premise') <p class="mt-1.5 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
 
                 <fieldset>
-                    <legend class="block text-sm font-medium text-deep-200">
-                        Tone <span class="font-normal text-deep-400">&middot; optional</span>
+                    <legend class="block text-sm font-medium text-ink-900">
+                        Tone <span class="font-normal text-ink-500">&middot; optional</span>
                     </legend>
 
                     <label class="mt-2 flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition
-                                  {{ $tone === \App\Models\Game::TONE_AUTO ? 'border-gold-500 bg-gold-500/10' : 'border-deep-800 hover:border-deep-700' }}">
+                                  {{ $tone === \App\Models\Game::TONE_AUTO ? 'border-sun-500 bg-sun-400/30' : 'border-earth-300 hover:border-earth-500' }}">
                         <input type="radio" wire:model.live="tone" value="{{ \App\Models\Game::TONE_AUTO }}"
-                               class="mt-0.5 accent-gold-500">
+                               class="mt-0.5 accent-sun-500">
                         <span>
-                            <span class="block text-sm font-medium text-white">Let the storyteller decide</span>
-                            <span class="block text-xs text-deep-400">
+                            <span class="block text-sm font-medium text-ink-900">Let the storyteller decide</span>
+                            <span class="block text-xs text-ink-500">
                                 The tone is read off your premise before the first scene is written.
                             </span>
                         </span>
@@ -105,12 +105,12 @@
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
                         @foreach ($tones as $key => $description)
                             <label class="flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition
-                                          {{ $tone === $key ? 'border-gold-500 bg-gold-500/10' : 'border-deep-800 hover:border-deep-700' }}">
+                                          {{ $tone === $key ? 'border-sun-500 bg-sun-400/30' : 'border-earth-300 hover:border-earth-500' }}">
                                 <input type="radio" wire:model.live="tone" value="{{ $key }}"
-                                       class="mt-0.5 accent-gold-500">
+                                       class="mt-0.5 accent-sun-500">
                                 <span>
-                                    <span class="block text-sm font-medium capitalize text-white">{{ $key }}</span>
-                                    <span class="block text-xs text-deep-400">{{ $description }}</span>
+                                    <span class="block text-sm font-medium capitalize text-ink-900">{{ $key }}</span>
+                                    <span class="block text-xs text-ink-500">{{ $description }}</span>
                                 </span>
                             </label>
                         @endforeach
@@ -119,31 +119,31 @@
             </div>
 
             <button type="submit"
-                    class="springy mt-6 w-full rounded-xl bg-gold-500 px-4 py-3 font-semibold text-deep-950 hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-300 focus:ring-offset-2 focus:ring-offset-deep-900">
-                <span wire:loading.remove wire:target="host">Set sail</span>
-                <span wire:loading wire:target="host">Casting off&hellip;</span>
+                    class="springy mt-6 w-full rounded-xl bg-sun-400 px-4 py-3 font-semibold text-ink-900 hover:bg-sun-300 focus:outline-none focus:ring-2 focus:ring-sun-400 focus:ring-offset-2 focus:ring-offset-parch-100">
+                <span wire:loading.remove wire:target="host">Set out</span>
+                <span wire:loading wire:target="host">Shouldering packs&hellip;</span>
             </button>
         </form>
 
         {{-- Player: join with a code --}}
         <form wire:submit="joinExisting"
-              class="chunky md:col-span-2 flex flex-col border border-deep-800 bg-deep-900/40 p-6">
-            <h2 class="text-lg font-semibold text-white">Join the party</h2>
-            <p class="mt-1 text-sm text-deep-400">Type the code on the screen.</p>
+              class="chunky md:col-span-2 flex flex-col border border-earth-300 bg-parch-50/70 p-6">
+            <h2 class="text-lg font-semibold text-ink-900">Join the party</h2>
+            <p class="mt-1 text-sm text-ink-500">Type the code on the screen.</p>
 
             <label for="code" class="sr-only">Game code</label>
             <input id="code" type="text" wire:model="code" maxlength="5"
                    inputmode="latin" autocapitalize="characters" autocomplete="off" spellcheck="false"
-                   placeholder="ATOLL"
-                   class="narration mt-5 w-full rounded-lg border border-deep-700 bg-deep-950 px-3 py-4 text-center text-3xl font-semibold uppercase tracking-[0.4em] text-white placeholder:text-deep-800 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500">
-            @error('code') <p class="mt-2 text-sm text-red-400">{{ $message }}</p> @enderror
+                   placeholder="QUEST"
+                   class="narration mt-5 w-full rounded-lg border border-earth-400 bg-sky-200 px-3 py-4 text-center text-3xl font-semibold uppercase tracking-[0.4em] text-ink-900 placeholder:text-earth-400 focus:border-sun-500 focus:outline-none focus:ring-1 focus:ring-sun-500">
+            @error('code') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
 
             <button type="submit"
-                    class="springy mt-4 w-full rounded-xl border border-deep-700 px-4 py-3 font-semibold text-white hover:border-gold-500 hover:text-gold-300 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    class="springy mt-4 w-full rounded-xl border border-earth-400 px-4 py-3 font-semibold text-ink-900 hover:border-sun-500 hover:text-sun-700 focus:outline-none focus:ring-2 focus:ring-sun-500">
                 Take a seat
             </button>
 
-            <p class="mt-auto pt-6 text-xs text-deep-700">
+            <p class="mt-auto pt-6 text-xs text-earth-400">
                 No account needed. Your character lives in this browser.
             </p>
         </form>
