@@ -280,13 +280,20 @@ class Doctor extends Command
             return;
         }
 
+        $newest = Scene::latest('id')->first();
+        $age = Carbon::parse($newest->created_at);
+
         if ($voiced === 0) {
-            $this->bad('Scenes', "none of {$total} scenes has audio — the job never completed. Check the queue and the narrator above.");
+            // Nothing is ever voiced after the fact, so a pile of old silent
+            // scenes says nothing at all about whether narration works now.
+            $age->lt(now()->subHour())
+                ? $this->ok('Scenes', "none of {$total} scenes has audio, but the newest is from {$age->diffForHumans()} — scenes are never voiced retroactively, so play a round to test this")
+                : $this->bad('Scenes', "the newest scene is from {$age->diffForHumans()} and still has no audio — the job is failing, see below");
 
             return;
         }
 
-        $this->ok('Scenes', "{$voiced} of {$total} scenes have audio");
+        $this->ok('Scenes', "{$voiced} of {$total} scenes have audio, newest scene {$age->diffForHumans()}");
 
         $newest = Scene::whereNotNull('narration_audio_path')->latest('id')->first();
         $disk = Storage::disk(config('questcast.narrator.disk'));
