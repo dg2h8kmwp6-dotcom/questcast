@@ -26,7 +26,7 @@ use Throwable;
  */
 class Doctor extends Command
 {
-    protected $signature = 'narrator:doctor';
+    protected $signature = 'narrator:doctor {--live : Actually synthesise a line and play the whole chain through}';
 
     protected $description = 'Diagnose why the story is not being read aloud';
 
@@ -44,6 +44,10 @@ class Doctor extends Command
         $this->checkStoredAudio();
         $this->checkQueue();
         $this->checkBundle();
+
+        if ($this->option('live')) {
+            $this->checkEndToEnd();
+        }
 
         $this->newLine();
 
@@ -401,6 +405,46 @@ class Doctor extends Command
         str_contains((string) file_get_contents($bundle), '[narrator]')
             ? $this->ok('Assets', 'the narrator is in the built bundle')
             : $this->bad('Assets', 'the built bundle predates the narrator — run npm run build and redeploy');
+    }
+
+    /**
+     * The only check that proves the whole thing works.
+     *
+     * Everything above tests a link in the chain in isolation; this one speaks
+     * a real line, stores it where a real scene would go, and fetches it back
+     * the way the browser will. It costs a few hundred characters of quota,
+     * which is why it is opt-in.
+     */
+    private function checkEndToEnd(): void
+    {
+        $this->newLine();
+        $this->components->info('Running the whole chain for real.');
+
+        $line = 'The cart track gives way to open meadow, and the light is going.';
+        $utterance = app(Narrator::class)->speak($line);
+
+        if (! $utterance) {
+            $this->bad('Live synthesis', 'the narrator returned nothing — see the Narrator line above');
+
+            return;
+        }
+
+        $this->ok('Live synthesis', number_format(strlen($utterance->audio)).' bytes of '.$utterance->contentType);
+
+        $disk = Storage::disk(config('questcast.narrator.disk'));
+        $path = 'narration/.live-'.bin2hex(random_bytes(4)).'.'.$utterance->extension;
+
+        if ($disk->put($path, $utterance->audio, ['ContentType' => $utterance->contentType]) !== true) {
+            $this->bad('Live store', 'the audio would not write to the narration disk');
+
+            return;
+        }
+
+        $this->ok('Live store', 'stored at '.$path);
+
+        $this->fetch('Live playback', $disk->url($path), 'stored fine but a browser cannot fetch it');
+
+        $disk->delete($path);
     }
 
     private function ok(string $label, string $detail): void
