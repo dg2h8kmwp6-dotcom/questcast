@@ -153,7 +153,7 @@
         </main>
 
         {{-- Party roster and the campaign log --}}
-        <aside class="flex min-h-0 w-full shrink-0 flex-col gap-6 lg:w-80">
+        <aside class="flex min-h-0 w-full shrink-0 flex-col gap-6 lg:w-96">
             <section class="shrink-0">
                 <h2 class="text-xs uppercase tracking-[0.3em] text-deep-400">
                     The party ({{ $this->players->count() }})
@@ -205,19 +205,41 @@
             </section>
 
             <section class="flex min-h-0 flex-1 flex-col">
-                <h2 class="text-xs uppercase tracking-[0.3em] text-deep-400">Campaign log</h2>
+                <h2 class="shrink-0 text-xs uppercase tracking-[0.3em] text-deep-400">Campaign log</h2>
 
-                <ul class="mt-3 max-h-[30vh] space-y-1.5 overflow-y-auto pr-1 text-sm" data-testid="log">
+                {{--
+                    The log is read from across the room, so entries are shown
+                    in full rather than clamped, and it takes whatever height
+                    the roster leaves it instead of a fixed slice of the
+                    viewport.
+
+                    The newest entry is the one the room cares about, and it
+                    arrives at the bottom, so the list pins itself there after
+                    every update. Scrolling back unpins it, which keeps the
+                    host's place while they read something older.
+                --}}
+                <ul x-data="{ pinned: true }"
+                    x-init="
+                        const list = $el, state = $data;
+                        const pin = () => { if (state.pinned) { list.scrollTop = list.scrollHeight; } };
+                        $nextTick(pin);
+                        new MutationObserver(pin).observe(list, { childList: true, subtree: true, characterData: true });
+                    "
+                    x-on:scroll="pinned = $el.scrollHeight - $el.scrollTop - $el.clientHeight < 48"
+                    class="mt-3 min-h-0 max-h-[32vh] flex-1 divide-y divide-deep-800/60 overflow-y-auto pr-2 text-sm lg:max-h-none lg:text-base"
+                    data-testid="log">
                     @foreach ($this->log as $event)
-                        <li class="{{ match ($event->type) {
-                            EventType::Roll => 'text-deep-400 tabular-nums',
-                            EventType::Damage => 'text-amber-400',
-                            EventType::Death => 'text-red-400',
-                            EventType::Loot => 'text-emerald-400',
-                            EventType::Join => 'text-gold-400',
-                            EventType::Narration, EventType::Resolution => 'text-deep-700 line-clamp-2',
-                            default => 'text-deep-400',
-                        } }}">
+                        <li wire:key="log-{{ $event->id }}"
+                            class="py-2 {{ match ($event->type) {
+                                EventType::Roll => 'text-deep-400 tabular-nums',
+                                EventType::Damage => 'text-amber-300',
+                                EventType::Death => 'font-semibold text-red-300',
+                                EventType::Loot => 'text-emerald-300',
+                                EventType::Join => 'text-gold-300',
+                                EventType::Narration => 'narration leading-relaxed text-deep-200',
+                                EventType::Resolution => 'narration border-l-2 border-gold-500/40 pl-3 leading-relaxed text-deep-200',
+                                default => 'text-deep-200',
+                            } }}">
                             {{ $event->body }}
                         </li>
                     @endforeach

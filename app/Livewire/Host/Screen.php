@@ -56,10 +56,17 @@ class Screen extends Component
             : [];
     }
 
+    /**
+     * The log the host screen renders, oldest first.
+     *
+     * A single round can log a narration, a roll per player, damage, loot and
+     * a death, so the window has to hold several rounds for the scrollback to
+     * be worth anything.
+     */
     #[Computed]
     public function log()
     {
-        return $this->game->events()->latest('id')->limit(14)->get()->reverse();
+        return $this->game->events()->latest('id')->limit(40)->get()->reverse();
     }
 
     /**

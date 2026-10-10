@@ -5,6 +5,7 @@ use App\Livewire\Home;
 use App\Livewire\Host\Screen;
 use App\Livewire\Player\Table;
 use App\Models\Game;
+use App\Models\GameEvent;
 use App\Models\Player;
 use App\Models\Scene;
 use Livewire\Livewire;
@@ -104,6 +105,26 @@ it('runs the whole first round from the host screen', function () {
 
     expect($game->fresh()->status)->toBe(GameStatus::AwaitingActions)
         ->and($game->fresh()->scene_number)->toBe(1);
+});
+
+it('keeps enough campaign log for several rounds, oldest entry first', function () {
+    $game = Game::factory()->create();
+
+    foreach (range(1, 45) as $n) {
+        GameEvent::factory()->for($game)->create(['body' => "Entry {$n}."]);
+    }
+
+    session(["host_token.{$game->code}" => $game->host_token]);
+
+    $component = Livewire::test(Screen::class, ['game' => $game])
+        ->assertDontSee('Entry 5.')
+        ->assertSee('Entry 6.')
+        ->assertSee('Entry 45.');
+
+    // The newest entry sits at the bottom, which is where the screen pins it.
+    $html = $component->html();
+
+    expect(strpos($html, 'Entry 6.'))->toBeLessThan(strpos($html, 'Entry 45.'));
 });
 
 it('lets a phone join and remembers the character in the session', function () {
