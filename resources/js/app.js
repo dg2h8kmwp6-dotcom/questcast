@@ -11,3 +11,5 @@ import './echo';
 import './audio';
 
 import './narrator';
+
+import './portrait';

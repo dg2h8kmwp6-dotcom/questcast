@@ -50,7 +50,10 @@
                         </span>
                     </label>
 
-                    <input id="photo" type="file" wire:model="photo"
+                    {{-- data-normalise-image hands this to resources/js/portrait.js,
+                         which re-encodes whatever the camera produced into a small
+                         JPEG before Livewire ever uploads it. --}}
+                    <input id="photo" type="file" wire:model="photo" data-normalise-image
                            accept="image/*" capture="user" class="sr-only">
 
                     <p class="mt-2 text-center text-sm text-ink-500">

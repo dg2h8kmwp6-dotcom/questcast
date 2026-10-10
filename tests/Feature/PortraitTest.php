@@ -109,3 +109,12 @@ it('shows a face on the shared screen once a player has one', function () {
 
     expect($player->portraitUrl())->toContain('portraits/x.jpg');
 });
+
+it('says something useful when the bytes are not a picture at all', function () {
+    // What a HEIC, or a photo cut short by upload_max_filesize, looks like
+    // from getimagesize()'s point of view: unidentifiable.
+    $file = UploadedFile::fake()->createWithContent('portrait.jpg', 'not an image at all');
+
+    expect(fn () => Portrait::store($file))
+        ->toThrow(RuntimeException::class, 'may be too large to upload');
+});

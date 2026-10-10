@@ -56,17 +56,29 @@ class Portrait
     private static function read(UploadedFile $file)
     {
         $path = $file->getRealPath();
+
+        // Deliberately not ?: — getimagesize() returns false for anything it
+        // cannot identify, and that case needs its own message below.
         $info = @getimagesize($path);
 
         $image = match ($info['mime'] ?? null) {
             'image/jpeg' => @imagecreatefromjpeg($path),
             'image/png' => @imagecreatefrompng($path),
             'image/webp' => @imagecreatefromwebp($path),
+            'image/gif' => @imagecreatefromgif($path),
+            'image/bmp' => @imagecreatefrombmp($path),
             default => false,
         };
 
         if (! $image) {
-            throw new RuntimeException('That photo is in a format we cannot read. Try again, or skip it.');
+            // getimagesize() returning nothing at all means the bytes were
+            // never a picture we could identify: a HEIC straight off an
+            // iPhone, or a large photo cut short by upload_max_filesize.
+            // The browser normally re-encodes before upload, so reaching here
+            // means that did not run.
+            throw new RuntimeException($info === false
+                ? 'We could not read that photo — it may be too large to upload, or in a format from your camera we cannot open. Try again, or skip it.'
+                : 'That photo is in a format we cannot read. Try again, or skip it.');
         }
 
         return self::applyOrientation($image, $path, $info['mime']);
