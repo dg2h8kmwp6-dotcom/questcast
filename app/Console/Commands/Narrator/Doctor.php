@@ -95,6 +95,8 @@ class Doctor extends Command
      */
     private function checkDisk(): void
     {
+        $this->reportPlatformDisks();
+
         $name = (string) config('questcast.narrator.disk');
         $known = array_keys(config('filesystems.disks', []));
 
@@ -159,6 +161,41 @@ class Doctor extends Command
             $disk->delete($probe);
         } catch (Throwable $e) {
             $this->bad('Disk write', $e->getMessage());
+        }
+    }
+
+    /**
+     * Which disks the platform has already wired up for us.
+     *
+     * Laravel Cloud attaches a bucket by injecting one variable describing the
+     * disks it configures, rather than the individual AWS_* values. Pointing
+     * NARRATION_DISK at a disk the platform never configured is then an easy
+     * and completely silent mistake, so say out loud what is actually on offer.
+     * Only names are read here — the blob also carries live credentials.
+     */
+    private function reportPlatformDisks(): void
+    {
+        $raw = env('LARAVEL_CLOUD_DISK_CONFIG');
+
+        if (blank($raw)) {
+            return;
+        }
+
+        $disks = collect(json_decode((string) $raw, true) ?: [])
+            ->pluck('disk')
+            ->filter()
+            ->values();
+
+        if ($disks->isEmpty()) {
+            return;
+        }
+
+        $this->ok('Platform disks', 'the platform configures: '.$disks->implode(', '));
+
+        $chosen = (string) config('questcast.narrator.disk');
+
+        if (! $disks->contains($chosen)) {
+            $this->bad('Platform disks', "NARRATION_DISK is [{$chosen}], which the platform does not configure. Point it at one of the above.");
         }
     }
 
