@@ -195,3 +195,11 @@ it('offers nothing for passages that have no audio yet', function () {
 
     expect(Livewire::test(Screen::class, ['game' => $game])->instance()->voiceOver)->toBe([]);
 });
+
+it('reports on the storyteller without blowing up', function () {
+    // The suite pins the silent narrator on purpose, so the doctor is expected
+    // to find exactly that and say so.
+    $this->artisan('narrator:doctor')
+        ->expectsOutputToContain('Checking the storyteller.')
+        ->assertExitCode(1);
+});
