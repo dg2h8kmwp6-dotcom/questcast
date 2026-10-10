@@ -16,6 +16,15 @@ import audio from './audio';
 /** Passages already spoken, or deliberately skipped, by key. */
 const spoken = new Set();
 
+/** Passages that would not load, and how many times we have tried. */
+const stumbles = new Map();
+
+/** After this many failures a passage is written off and said so out loud. */
+const MAX_ATTEMPTS = 3;
+
+/** Backs off a little further each time before trying a passage again. */
+const RETRY_DELAY = 4000;
+
 let queue = [];
 let speaking = null;
 let listening = false;
@@ -72,17 +81,61 @@ function advance() {
 
     speaking = sound;
 
-    // A passage that will not load is one the room reads off the screen; it
-    // must never stall the ones queued behind it.
-    const done = () => {
+    // An element can both reject play() and raise error for the same failure,
+    // so whichever arrives first is the one that counts.
+    let settled = false;
+
+    const release = () => {
         if (speaking === sound) speaking = null;
         advance();
     };
 
-    sound.addEventListener('ended', done);
-    sound.addEventListener('error', done);
+    const done = () => {
+        if (settled) return;
+        settled = true;
+        release();
+    };
 
-    sound.play().catch(done);
+    /*
+     * A passage that will not load must never stall the ones queued behind it,
+     * but it must not be written off on the first try either: audio that is
+     * merely late looks identical here to audio that will never arrive.
+     *
+     * The retry is scheduled rather than left to the next render, because a
+     * morph that changes nothing mutates nothing, and this would otherwise wait
+     * on an event that never comes. A passage that comes back late can fall
+     * behind one queued after it; keeping the queue moving is worth more than
+     * strict order in a path that is already going wrong.
+     *
+     * Failing silently is what makes "the sound is not working" impossible to
+     * diagnose from the room, so the last attempt says so in the console.
+     */
+    const stumble = (reason) => {
+        if (settled) return;
+        settled = true;
+
+        const tries = (stumbles.get(passage.key) ?? 0) + 1;
+        stumbles.set(passage.key, tries);
+
+        if (tries < MAX_ATTEMPTS) {
+            setTimeout(() => {
+                queue.push(passage);
+                advance();
+            }, RETRY_DELAY * tries);
+        } else {
+            console.warn(
+                `[narrator] gave up on ${passage.url} after ${tries} attempts.`,
+                reason ?? '',
+            );
+        }
+
+        release();
+    };
+
+    sound.addEventListener('ended', done);
+    sound.addEventListener('error', () => stumble(sound.error?.message));
+
+    sound.play().catch((error) => stumble(error?.message));
 }
 
 /** Stop him mid-sentence and forget what was coming. */
